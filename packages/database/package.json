@@ -1,0 +1,19 @@
+{
+  "name": "@mindops/database",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mindops/domain": "workspace:*",
+    "@supabase/supabase-js": "^2.48.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

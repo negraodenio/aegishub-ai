@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+.turbo
+coverage
+supabase/.temp
+pnpm-lock.yaml
+*.log
+.antigravity
