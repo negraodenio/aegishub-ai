@@ -174,7 +174,7 @@ export function DPODashboard({ companyName }: { companyName: string }) {
       {/* Footer Branding */}
       <footer className="mt-20 pt-8 border-t border-white/5 text-center flex flex-col md:flex-row justify-between items-center gap-4">
         <p className="text-[10px] text-slate-600 uppercase font-black tracking-[0.3em]">
-          MindOps PsicoRisco PT // Palantir-Grade Compliance // 2026
+          AEGIS HUB // Palantir-Grade Compliance // 2026
         </p>
         <div className="flex gap-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
           <a href="#" className="hover:text-emerald-500 transition-colors">Termos de Auditoria</a>

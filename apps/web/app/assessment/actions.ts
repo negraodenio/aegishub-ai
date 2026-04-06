@@ -50,7 +50,7 @@ export async function getAssessmentContext(token: string) {
   if (error || !employee) return null;
   return {
     employeeName: employee.full_name,
-    companyName: employee.tenants?.name || "PsicoRisco Client",
+    companyName: employee.tenants?.name || "AEGIS HUB Client",
     verticalPack: employee.tenants?.vertical || "generic",
     tenantId: employee.tenant_id
   };

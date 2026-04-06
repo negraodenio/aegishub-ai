@@ -196,7 +196,7 @@ export const ACTReportPDF = ({ data }: { data: ACTReportData }) => (
 
       {/* Nota Legal */}
       <View style={styles.legalNotice}>
-        <Text>Este documento é gerado automaticamente pelo sistema PsicoRisco PT (MindOps Intelligence M2.7) e carece de validação final pelo Responsável SST ou Médico do Trabalho da empresa.</Text>
+        <Text>Este documento é gerado automaticamente pelo sistema AEGIS HUB (MindOps Intelligence M2.7) e carece de validação final pelo Responsável SST ou Médico do Trabalho da empresa.</Text>
       </View>
 
       {/* Footer */}

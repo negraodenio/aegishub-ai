@@ -24,7 +24,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <div className="h-8 w-8 rounded bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center">
               <ShieldCheck className="text-white h-5 w-5" />
             </div>
-            <span className="text-white font-black tracking-tighter text-xl uppercase">PsicoRisco <span className="text-emerald-500">PT</span></span>
+            <span className="text-white font-black tracking-tighter text-xl uppercase">AEGIS <span className="text-emerald-500">HUB</span></span>
           </div>
           <p className="text-[10px] uppercase tracking-widest font-bold text-slate-600">Enterprise Control v12.0</p>
         </div>

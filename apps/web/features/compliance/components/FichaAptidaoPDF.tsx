@@ -138,7 +138,7 @@ export const FichaAptidaoPDF = ({
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <Text style={styles.title}>FICHA DE APTIDÃO MÉDICA</Text>
-          <Text style={styles.subtitle}>PsicoRisco PT - Sistema de Inteligência em Saúde Ocupacional</Text>
+          <Text style={styles.subtitle}>AEGIS HUB - Sistema de Inteligência em Saúde Ocupacional</Text>
         </View>
 
         <View style={styles.section}>

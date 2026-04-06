@@ -2,7 +2,7 @@ import { DPODashboard } from "../../../features/compliance/components/DPODashboa
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "DPO Compliance Center | PsicoRisco PT",
+  title: "DPO Compliance Center | AEGIS HUB",
   description: "Monitorização de conformidade RGPD e AI Act para gestores e auditores.",
 };
 

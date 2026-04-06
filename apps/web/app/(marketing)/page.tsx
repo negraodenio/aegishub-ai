@@ -86,16 +86,46 @@ export default function MarketingPage() {
               <div className="bg-surface-container-low/50 backdrop-blur-sm rounded-3xl py-8 px-12 border border-outline-variant/10 flex flex-wrap justify-center items-center gap-x-12 gap-y-6 text-on-surface-variant font-medium">
                 <span className="flex items-center gap-2 opacity-70">
                   <span className="material-symbols-outlined text-primary">verified_user</span>
-                  Concebido sob o rigor do EU AI Act
+                  Concebido sob o rigor do EU AI Act & RGPD
                 </span>
                 <span className="flex items-center gap-2 opacity-70">
                   <span className="material-symbols-outlined text-primary">lock</span>
-                  GDPR Compliance Integral
+                  Lei 93/2021: Canal de Denúncias Integral
                 </span>
                 <span className="flex items-center gap-2 opacity-70">
                   <span className="material-symbols-outlined text-primary">gavel</span>
-                  ACT: Confirmado Lei 102/2009
+                  ACT: Conformidade Lei 102/2009 & 83/2021
                 </span>
+              </div>
+            </div>
+          </section>
+
+          {/* Clinical Protocols Section [NEW] */}
+          <section className="px-6 md:px-12 py-24 bg-surface-container-lowest">
+            <div className="max-w-[1440px] mx-auto">
+              <div className="text-center mb-16 space-y-4">
+                <h2 className="text-3xl md:text-5xl font-black text-on-surface tracking-tight">Standard de Ouro <span className="text-primary italic">Clínico</span></h2>
+                <p className="text-on-surface-variant max-w-2xl mx-auto font-light lg:text-lg">
+                  A nossa IA não substitui a ciência. Ela escala-a através dos protocolos mais rigorosos da medicina ocupacional moderna.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="p-8 border border-outline-variant/10 rounded-3xl bg-surface hover:border-primary/30 transition-colors">
+                  <div className="text-primary font-bold text-lg mb-4 font-[Manrope]">GAD-7</div>
+                  <div className="text-2xl font-bold mb-4">Ansiedade Generalizada</div>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">Protocolo de 7 itens para rastreio e monitorização da severidade da ansiedade, validado para contextos corporativos de alta performance.</p>
+                </div>
+                <div className="p-8 border border-outline-variant/10 rounded-3xl bg-surface hover:border-primary/30 transition-colors">
+                  <div className="text-primary font-bold text-lg mb-4 font-[Manrope]">PHQ-9</div>
+                  <div className="text-2xl font-bold mb-4">Depressão & Vitalidade</div>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">Instrumento fundamental para deteção precoce de episódios depressivos e perda de energia produtiva, garantindo intervenção antes do colapso.</p>
+                </div>
+                <div className="p-8 border border-outline-variant/10 rounded-3xl bg-surface hover:border-primary/30 transition-colors">
+                  <div className="text-primary font-bold text-lg mb-4 font-[Manrope]">COPSOQ II</div>
+                  <div className="text-2xl font-bold mb-4">Riscos Psicossociais</div>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">Standard dinamarquês para avaliação exaustiva do ambiente psicossocial, exigido para conformidade total com a Lei 102/2009.</p>
+                </div>
               </div>
             </div>
           </section>
@@ -137,8 +167,8 @@ export default function MarketingPage() {
                     <div className="w-16 h-16 bg-surface-container-low rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary transition-colors duration-300">
                       <span className="material-symbols-outlined text-3xl text-primary group-hover:text-white" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
                     </div>
-                    <h3 className="text-2xl font-bold text-on-surface mb-4">Canal de Denúncias Seguro</h3>
-                    <p className="text-on-surface-variant leading-relaxed">Conformidade imediata com a Lei 93/2021 (Whistleblowing) através de IA confidencial que encripta os dados.</p>
+                    <h3 className="text-2xl font-bold text-on-surface mb-4">Canal de Denúncias Ativo</h3>
+                    <p className="text-on-surface-variant leading-relaxed">Conformidade obrigatória com a Lei 93/2021 (Whistleblowing) para empresas com +50 colaboradores. IA confidencial com encriptação assimétrica.</p>
                   </div>
                   <div className="mt-8 pt-8 border-t border-outline-variant/10">
                     <ul className="space-y-3">
@@ -155,7 +185,7 @@ export default function MarketingPage() {
                       <span className="material-symbols-outlined text-3xl text-primary group-hover:text-white" style={{ fontVariationSettings: "'FILL' 1" }}>monitoring</span>
                     </div>
                     <h3 className="text-2xl font-bold text-on-surface mb-4">Prevenção Preditiva</h3>
-                    <p className="text-on-surface-variant leading-relaxed">Monitorização de fadiga e gestão do 'Direito a Desligar', mitigando pesadas coimas e fuga de talentos na organização.</p>
+                    <p className="text-on-surface-variant leading-relaxed">Monitorização de fadiga e gestão do 'Direito a Desligar' (Lei 83/2021), mitigando multas severas e a erosão de talentos estratégicos.</p>
                   </div>
                   <div className="mt-8 pt-8 border-t border-outline-variant/10">
                     <ul className="space-y-3">
@@ -167,7 +197,51 @@ export default function MarketingPage() {
               </div>
             </div>
           </section>
-
+          {/* Risk & Fines Section [NEW] */}
+          <section className="px-6 md:px-12 py-32 bg-[#1a1c19] text-white overflow-hidden relative">
+            <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div className="space-y-8 relative z-10">
+                <div className="inline-block px-4 py-1 rounded-full bg-error text-white text-[10px] font-black uppercase tracking-widest animate-pulse">Alerta de Risco</div>
+                <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">
+                  O Custo do Silêncio pode chegar aos <span className="text-error">20 Milhões de Euros</span>.
+                </h2>
+                <p className="text-lg text-slate-400 font-light max-w-xl">
+                  As coimas por incumprimento do RGPD (4% do volume de negócios global) e as auditorias da ACT sobre a Lei 102/2009 e 83/2021 não são apenas teóricas. São riscos reais que o AEGIS HUB neutraliza.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-6 items-start">
+                  <button className="bg-error text-white px-10 py-5 rounded-xl font-bold text-base hover:bg-red-700 transition-all shadow-[0_20px_40px_rgba(186,26,26,0.3)]">
+                    Auditar Meu Risco de Multa Agora
+                  </button>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="bg-surface-container-high/10 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 space-y-6">
+                  <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Simulador de Passivo Jurídico</span>
+                    <span className="text-error font-mono text-xs">AUDIT_CRITICAL_LEVEL</span>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Prazos de Triagem ACT (Lei 102/2009)</span>
+                      <span className="text-error font-bold italic">Incumprimento Detetado</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-error w-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Proteção de Dados (RGPD/AI Act)</span>
+                      <span className="text-emerald-500 font-bold italic">Nivel Aegis Ativo</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 w-[100%] transition-all duration-1000"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Background decorative blob */}
+            <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-error/10 rounded-full blur-[150px] -translate-y-1/2 -z-0"></div>
+          </section>
           {/* Human-in-the-Loop Section */}
           <section className="px-6 md:px-12 py-32 bg-surface-container-low">
             <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">

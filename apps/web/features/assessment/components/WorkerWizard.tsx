@@ -102,9 +102,9 @@ export function WorkerWizard({ token }: WorkerWizardProps) {
       <header className="bg-white border-b border-slate-200 p-6 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs">PR</span>
+            <span className="text-white font-bold text-xs">AH</span>
           </div>
-          <h1 className="text-lg font-bold text-slate-800">PsicoRisco PT</h1>
+          <h1 className="text-lg font-bold text-slate-800">AEGIS HUB</h1>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-emerald-600">
           <span className="flex h-2 w-2 relative">
