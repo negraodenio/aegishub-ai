@@ -65,7 +65,7 @@ export class AssessmentService {
 
       // 2. Iniciar sessão
       const { data: session, error: sessionError } = await (createSession(client, {
-        employeeId: params.employeeId,
+        employeeId: "00000000-0000-0000-0000-000000000000", // Airlock: Anonymous Silo
         tenantId,
         verticalPack: params.verticalPack,
       }) as any);
@@ -138,7 +138,8 @@ export class AssessmentService {
       }
 
       // 7. Invalidar Token (Atomic Completion)
-      await client
+      // 7. Invalidar Token (Atomic Completion)
+      await (client as any)
         .from("assessment_tokens")
         .update({ used_at: new Date().toISOString() })
         .eq("id", params.token);
@@ -171,8 +172,8 @@ export class AssessmentService {
       if (score.riskLevel === "high" || score.riskLevel === "critical") {
         await (client.from("corrective_actions") as any).insert({
           tenant_id: tenantId,
-          title: `Intervenção Preventiva: ${employee.full_name}`,
-          description: `Risco Detectado: ${score.riskLevel}. Motivos: ${score.reasons.join(", ")}. Requer revisão organizacional imediata.`,
+          title: `Intervenção Preventiva Acionada (Modo Anónimo)`,
+          description: `Risco Detectado: ${score.riskLevel}. Motivos: ${score.reasons.join(", ")}. Requer revisão estrutural da equipa (Tokens Blindados).`,
           priority: score.riskLevel === "critical" ? "CRITICAL" : "HIGH",
           status: "PLANNED"
         });
