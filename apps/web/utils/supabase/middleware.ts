@@ -43,6 +43,7 @@ export const updateSession = async (request: NextRequest) => {
     request.nextUrl.pathname.startsWith("/dashboard") ||
     request.nextUrl.pathname.startsWith("/rh") ||
     request.nextUrl.pathname.startsWith("/assessment") ||
+    request.nextUrl.pathname.startsWith("/admin") ||
     request.nextUrl.pathname.startsWith("/sos")
   );
 

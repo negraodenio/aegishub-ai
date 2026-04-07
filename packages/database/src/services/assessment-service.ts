@@ -167,7 +167,31 @@ export class AssessmentService {
         await (completeSession(client, session.id) as any);
       }
 
-      // 7. Auto-Generate Corrective Action for High Risk [SENIOR PRODUCT FEATURE]
+      // 7. Governança IA M2.7 (Audit & Explainability)
+      // Logamos a decisão da IA para conformidade com o EU AI Act
+      const { data: decision, error: decisionError } = await (client.from("ai_decisions") as any).insert({
+        tenant_id: tenantId,
+        decision_type: "assessment_scoring",
+        status: "completed",
+        memory_updates: {
+          risk_level: score.riskLevel,
+          confidence: score.confidence,
+          reasons: score.reasons,
+          composite_score: score.compositeRiskScore,
+          model_version: "AEGIS-M2.7-PROD"
+        }
+      }).select().single();
+
+      if (decision && !decisionError) {
+        await (client.from("ai_audit_logs") as any).insert({
+          decision_id: decision.id,
+          action: "clinical_score_generation",
+          actor: "AEGIS_HUB_BRAIN",
+          new_memory: decision.memory_updates,
+        });
+      }
+
+      // 8. Auto-Generate Corrective Action for High Risk
       if (score.riskLevel === "high" || score.riskLevel === "critical") {
         await (client.from("corrective_actions") as any).insert({
           tenant_id: tenantId,
@@ -178,7 +202,7 @@ export class AssessmentService {
         });
       }
 
-      return { success: true, riskLevel: score.riskLevel };
+      return { success: true, riskLevel: score.riskLevel, data: score } as any;
     } catch (e: any) {
       console.error("[AssessmentService] Unexpected Error:", e);
       return { success: false, error: "Ocorreu um erro inesperado no processamento clínico." };

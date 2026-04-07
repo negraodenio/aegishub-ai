@@ -8,9 +8,21 @@ export async function getEmployeesAction() {
   
   // No mundo real, filtraríamos pelo tenant_id da sessão do admin.
   // Como estamos em POC, trazemos os mais recentes.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("tenant_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) return [];
+
   const { data, error } = await supabase
     .from("employees")
     .select("*, assessment_sessions(status)")
+    .eq("tenant_id", (profile as any).tenant_id)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -31,15 +43,22 @@ export async function createEmployeeAction(formData: {
 }) {
   const supabase = await createClient();
 
-  // Mock Tenant ID (SafeHorizon)
-  // Reais: const { data: { user } } = await supabase.auth.getUser();
-  const TENANT_ID = "00000000-0000-0000-0000-000000000001"; // Placeholder SafeHorizon
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("tenant_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) return { success: false, error: "No organization found" };
 
   const { data, error } = await (supabase.from("employees") as any).insert({
     full_name: formData.fullName,
     department: formData.department,
     business_unit: formData.businessUnit,
-    tenant_id: TENANT_ID,
+    tenant_id: (profile as any).tenant_id,
     status: "active"
   }).select().single();
 

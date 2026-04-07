@@ -18,7 +18,7 @@ export default function MarketingPage() {
             <div className="text-2xl font-black text-[#005c55] tracking-tighter">AEGIS HUB</div>
             <div className="hidden md:flex gap-10 font-[Manrope] font-semibold tracking-tight text-sm">
               <a className="text-[#005c55] border-b-2 border-[#005c55] pb-1" href="#">A Plataforma</a>
-              <a className="text-[#1a1c19] hover:text-[#005c55] transition-colors" href="/admin">Portal C-Level</a>
+              <a className="text-[#1a1c19] hover:text-[#005c55] transition-colors" href="/admin">Painel de Auditoria SST</a>
               <a className="text-[#1a1c19] hover:text-[#005c55] transition-colors" href="/assessment">Avaliação Colaborador</a>
             </div>
             <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-[Manrope] font-semibold text-sm active:scale-95 duration-200 ease-out hover:shadow-lg transition-all">

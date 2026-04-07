@@ -3,6 +3,7 @@
 import { AssessmentService, getEmployeeContext, saveConsentLog } from "@mindops/database";
 import { revalidatePath } from "next/cache";
 import { createClient } from "../../utils/supabase/server";
+import { sendCriticalAlert } from "../../lib/notifications";
 
 export async function submitConsentAction(params: {
   employeeId: string;
@@ -34,7 +35,20 @@ export async function submitAssessmentAction(formData: {
   const result = await AssessmentService.submitCompleteAssessment(supabase as any, formData as any);
 
   if (result.success) {
-    // Revalidar Dashboards afetados pelos novos scores
+    // 1. Enviar Alerta Crítico (Email/Slack) se o risco for severo
+    const scoreData = (result as any).data;
+    if (scoreData?.risk_level === "critical") {
+      await sendCriticalAlert({
+        employeeId: formData.employeeId,
+        employeeName: "Colaborador Anonimizado", // Para conformidade Lei 102/2009
+        companyName: "SafeHorizon Hub", // Idealmente vindo do context
+        riskLevel: scoreData.risk_level,
+        reasons: scoreData.reasons || ["Alerta Preditivo de Burnout/Fadiga"],
+        score: scoreData.composite_risk_score
+      });
+    }
+
+    // 2. Revalidar Dashboards afetados pelos novos scores
     revalidatePath("/rh");
     revalidatePath("/admin/compliance");
   }
