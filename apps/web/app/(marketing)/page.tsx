@@ -70,7 +70,7 @@ export default function MarketingPage() {
             <div className="relative group">
                <div className="bg-slate-100 rounded-[4rem] aspect-square overflow-hidden relative shadow-2xl border-8 border-white group-hover:scale-[1.02] transition-transform duration-700">
                   <img 
-                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1000&auto=format&fit=crop" 
+                    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1000&auto=format&fit=crop" 
                     alt="Modern professional office team"
                     className="w-full h-full object-cover opacity-90"
                   />
@@ -83,12 +83,15 @@ export default function MarketingPage() {
                   </div>
                </div>
                <div className="absolute -bottom-10 -left-10 bg-slate-900 text-white p-8 rounded-[3rem] shadow-2xl space-y-4 border border-white/10">
-                  <div className="flex items-center gap-3 mb-2">
-                     <Shield className="w-6 h-6 text-emerald-400" />
-                     <span className="font-black tracking-tighter text-lg italic">Certificado M2.7</span>
+                  <div className="flex justify-between items-start mb-2">
+                     <div className="flex items-center gap-3">
+                        <Shield className="w-6 h-6 text-emerald-400" />
+                        <span className="font-black tracking-tighter text-lg italic">Motor M2.7</span>
+                     </div>
+                     <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-black px-2 py-0.5 ml-4 rounded uppercase">Preditivo</span>
                   </div>
-                  <p className="text-xs text-slate-400 max-w-[200px] leading-relaxed">
-                     Protocolos clínicos validados e mecanismos de minimização de dados.
+                  <p className="text-xs text-slate-400 max-w-[240px] leading-relaxed">
+                     A nossa <strong>Inteligência Artificial proprietária</strong>. Triagem de exaustão via IA com mecanismo obrigatório de supervisão humana (alinhado com o EU AI Act).
                   </p>
                </div>
             </div>
