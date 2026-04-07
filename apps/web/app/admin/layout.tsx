@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldCheck, Cpu, LayoutDashboard, Database, Anchor } from "lucide-react";
+import { ShieldCheck, Cpu, LayoutDashboard, Database, Anchor, Users } from "lucide-react";
 import { ReactNode } from "react";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -11,6 +11,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { name: "Cérebro IA (M2.7)", href: "/admin/ai-pilot", icon: Cpu },
     { name: "Compliance & DPO", href: "/admin/compliance", icon: ShieldCheck },
+    { name: "Gestão de Equipa", href: "/admin/team", icon: Users },
     { name: "Registos Frios", href: "#", icon: Database, disabled: true },
     { name: "Configurações", href: "#", icon: Anchor, disabled: true },
   ];
