@@ -15,7 +15,7 @@ export default async function CompliancePage() {
     .from("profiles")
     .select("role")
     .eq("id", user.id)
-    .single();
+    .single() as any;
 
   if (profile?.role === "hr") {
     // HR can only see aggregate data, which the heatmap already is.
