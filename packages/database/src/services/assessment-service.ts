@@ -46,8 +46,8 @@ export class AssessmentService {
         return { success: false, error: "Token inválido, expirado ou já utilizado." };
       }
 
-      const tenantId = (tokenData.tenants as any).id;
-      const tokenHash = tokenData.token_hash;
+      const tenantId = ((tokenData as any).tenants as any).id;
+      const tokenHash = (tokenData as any).token_hash;
 
       // 2. Criar Assento Clínico Siloed (Clinical Layer)
       const { data: assessment, error: assessmentError } = await client
