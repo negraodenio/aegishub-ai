@@ -1,4 +1,5 @@
 import { getManagerOverview } from "@mindops/database";
+export const dynamic = "force-dynamic";
 import { createClient } from "../../../utils/supabase/server";
 import { BrainCircuit, Users, AlertTriangle, ShieldCheck, TrendingUp } from "lucide-react";
 import Link from "next/link";

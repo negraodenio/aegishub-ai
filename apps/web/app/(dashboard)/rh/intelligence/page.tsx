@@ -1,7 +1,9 @@
+"use client";
+
 import { DriftMatrixCard } from "../../../../features/rh-dashboard/components/DriftMatrixCard";
 import { PatchFeedList } from "../../../../features/rh-dashboard/components/PatchFeedList";
 import { HumanValidationQueue } from "../../../../features/rh-dashboard/components/HumanValidationQueue";
-import { BrainCircuit, ShieldCheck } from "lucide-react";
+import { BrainCircuit } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function IntelligenceHubPage() {

@@ -1,4 +1,5 @@
 import { RHService } from "@mindops/database";
+export const dynamic = "force-dynamic";
 import { createClient } from "../../../utils/supabase/server";
 import { CoverageCard } from "../../../features/rh-dashboard/components/CoverageCard";
 import { ComplianceScoreCard } from "../../../features/rh-dashboard/components/ComplianceScoreCard";

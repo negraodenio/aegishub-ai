@@ -1,4 +1,5 @@
 import { getClinicalReviewQueue } from "@mindops/database";
+export const dynamic = "force-dynamic";
 import { createClient } from "../../../utils/supabase/server";
 import { BrainCircuit, Activity, AlertCircle, Clock, CheckCircle2, ChevronRight, Stethoscope, ShieldCheck } from "lucide-react";
 import Link from "next/link";
