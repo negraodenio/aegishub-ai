@@ -16,9 +16,27 @@ export default async function RHDashboardPage({
 }) {
   try {
     const { tenantId } = await searchParams;
-    const targetTenantId = tenantId || "e037420f-71b2-40e7-935f-170eb265b36a"; // ACME Default
-
     const client = await createClient();
+    
+    // 1. Tentar obter o tenantId do utilizador logado se não for fornecido via URL
+    let targetTenantId = tenantId;
+    let tenantName = "Empresa Demonstrativa";
+
+    if (!targetTenantId) {
+      const { data: { user } } = await client.auth.getUser();
+      if (user) {
+        const { data: profile } = await client.from("profiles").select("tenant_id").eq("id", user.id).single();
+        targetTenantId = (profile as any)?.tenant_id;
+      }
+    }
+
+    // 2. Fallback para o tenant ACME se tudo falhar (para facilitar o teste do parceiro)
+    if (!targetTenantId) {
+       const { data: acme } = await client.from("tenants").select("id, name").eq("slug", "acme-corp").single();
+       targetTenantId = acme?.id || "e037420f-71b2-40e7-935f-170eb265b36a";
+       tenantName = acme?.name || "ACME Enterprise";
+    }
+
     const { overview, heatmap, actionQueue } = await RHService.getDashboardData(client as any, targetTenantId);
 
     return (
@@ -33,14 +51,14 @@ export default async function RHDashboardPage({
           </div>
           <div className="flex items-center gap-2 text-indigo-400">
             <Building2 className="h-4 w-4" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Tenant Auditada: ACME Enterprise // Portugal</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Tenant Auditada: {tenantName} // Portugal</span>
           </div>
           <p className="mt-2 text-sm text-slate-400 max-w-lg">
             Visão executiva estratégica de risco psicossocial, cobertura clínica e conformidade normativa (Lei 102/2009).
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <ACTDownloadButton tenantName="ACME Enterprise" />
+          <ACTDownloadButton tenantName={tenantName} />
           <Link 
             href={"/rh/intelligence" as any} 
             className="flex items-center gap-2 rounded-xl bg-indigo-500/10 px-5 py-2.5 text-xs font-bold tracking-widest uppercase text-indigo-400 hover:bg-indigo-500/20 transition-all shadow-lg border border-indigo-400/20 active:scale-95"
@@ -91,12 +109,20 @@ export default async function RHDashboardPage({
   } catch (error: any) {
     console.error("[RH_DASHBOARD_ERROR]", error);
     return (
-      <div className="p-20 text-center">
-        <h2 className="text-2xl font-bold italic uppercase tracking-tighter">Centro de Inteligência <span className="text-emerald-500">AEGIS HUB</span></h2>
-        <p className="text-slate-400 mt-2">{error.message || "Falha na conexão com o Intelligence Center."}</p>
-        <div className="mt-4 p-4 bg-slate-900 rounded-lg text-left font-mono text-[10px] text-slate-500 overflow-auto max-w-2xl mx-auto">
-           Verifique se o seu perfil tem acesso ao Tenant { "e037420f-71b2-40e7-935f-170eb265b36a" } e se as migrações SQL foram aplicadas.
+      <div className="min-h-screen bg-[#020202] text-white flex flex-col items-center justify-center p-10 font-sans">
+        <div className="h-20 w-20 rounded-[28px] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(244,63,94,0.1)]">
+           <BrainCircuit className="h-10 w-10 text-rose-500" />
         </div>
+        <h2 className="text-2xl font-black italic uppercase tracking-tighter">Erro de <span className="text-rose-500">Sincronização</span></h2>
+        <p className="text-slate-500 mt-4 text-sm max-w-md text-center uppercase font-bold tracking-widest leading-relaxed">
+          Não foi possível carregar os dados do Intelligence Center. Certifique-se que o Tenant ID é válido e que o protocolo M2.7 está ativo.
+        </p>
+        <div className="mt-10 p-6 bg-white/[0.02] border border-white/5 rounded-3xl text-left font-mono text-[10px] text-slate-600 overflow-auto max-w-2xl mx-auto shadow-inner">
+           {error.message || "Erro desconhecido na camada de dados RH."}
+        </div>
+        <Link href="/auth/login" className="mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 hover:underline">
+          Reiniciar Sessão de Auditoria
+        </Link>
       </div>
     );
   }

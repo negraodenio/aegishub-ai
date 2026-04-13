@@ -7,11 +7,30 @@ export default async function ClinicalPortalPage({
 }: {
   searchParams: Promise<{ tenantId?: string }>;
 }) {
-  const { tenantId } = await searchParams;
-  const targetTenantId = tenantId || "e037420f-71b2-40e7-935f-170eb265b36a";
+  try {
+    const { tenantId } = await searchParams;
+    const client = await createClient();
 
-  const client = await createClient();
-  const { data: queue, error } = await getClinicalReviewQueue(client as any, targetTenantId);
+    // 1. Tentar obter o tenantId do utilizador logado se não for fornecido via URL
+    let targetTenantId = tenantId;
+    let tenantName = "Ecossistema Clínico";
+
+    if (!targetTenantId) {
+      const { data: { user } } = await client.auth.getUser();
+      if (user) {
+        const { data: profile } = await client.from("profiles").select("tenant_id").eq("id", user.id).single();
+        targetTenantId = (profile as any)?.tenant_id;
+      }
+    }
+
+    // 2. Fallback para o tenant ACME se tudo falhar (para facilitar o teste do parceiro)
+    if (!targetTenantId) {
+       const { data: acme } = await client.from("tenants").select("id, name").eq("slug", "acme-corp").single();
+       targetTenantId = acme?.id || "e037420f-71b2-40e7-935f-170eb265b36a";
+       tenantName = acme?.name || "ACME Enterprise";
+    }
+
+    const { data: queue, error } = await getClinicalReviewQueue(client as any, targetTenantId);
 
   const stats = {
     pending: queue?.length ?? 0,
@@ -28,6 +47,10 @@ export default async function ClinicalPortalPage({
                 <BrainCircuit className="h-6 w-6 text-black" />
              </div>
              <h1 className="text-2xl font-black tracking-tighter italic uppercase">AEGIS <span className="font-light not-italic text-neutral-500 ml-1">HUB</span> / Clínico</h1>
+          </div>
+          <div className="flex items-center gap-2 text-indigo-400">
+            <ShieldCheck className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Auditando: {tenantName}</span>
           </div>
           <p className="text-sm text-neutral-500 max-w-lg">
             Centro de Diagnóstico e Triagem Assistida. Monitorização de fadiga, burnout e resiliência biométrica.
@@ -134,6 +157,22 @@ export default async function ClinicalPortalPage({
           )}
         </div>
       </section>
-    </main>
-  );
+    );
+  } catch (error: any) {
+    console.error("[CLINICAL_PORTAL_ERROR]", error);
+    return (
+      <div className="min-h-screen bg-[#020202] text-white flex flex-col items-center justify-center p-10 font-sans text-center">
+        <div className="h-20 w-20 rounded-[28px] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(244,63,94,0.1)]">
+           <BrainCircuit className="h-10 w-10 text-rose-500" />
+        </div>
+        <h2 className="text-2xl font-black italic uppercase tracking-tighter">Protocolo Clínico <span className="text-rose-500">Suspenso</span></h2>
+        <p className="text-slate-500 mt-4 text-sm max-w-md uppercase font-bold tracking-widest leading-relaxed">
+          Falha na verificação de integridade biométrica ou ausência de permissões para este Tenant.
+        </p>
+        <Link href="/auth/login" className="mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 hover:underline">
+          Validar Identidade Médica
+        </Link>
+      </div>
+    );
+  }
 }
