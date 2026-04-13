@@ -17,7 +17,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function setupAdmin() {
   const email = 'admin@aegis.pt';
-  const password = 'Aegis2026!';
+  const password = process.env.TEST_ADMIN_PASSWORD || 'GenerateAStrongOne123!';
 
   console.log(`🚀 Criando/Atualizando utilizador: ${email}...`);
 
