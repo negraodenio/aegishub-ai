@@ -1,63 +1,82 @@
-# AEGIS HUB // Intelligence. Protection. Compliance. 🛡️🛰️💎
+# AegisHub — Mental Health & Compliance AI System
 
-A **AEGIS HUB** é o ecossistema definitivo de inteligência ocupacional focado na mitigação de riscos psicossociais, auditoria de SST (Saúde e Segurança no Trabalho) e conformidade normativa automatizada.
-
-![Status: Enterprise Ready](https://img.shields.io/badge/Status-Enterprise--Ready-10b981?style=for-the-badge)
-![Compliance: EU AI Act](https://img.shields.io/badge/Compliance-EU--AI--Act-blue?style=for-the-badge)
-![Security: Audit-Grade](https://img.shields.io/badge/Security-Audit--Grade-rose?style=for-the-badge)
-
-## 🌐 Visão Estratégica
-
-Onde a intervenção humana encontra a precisão algorítmica. A AEGIS HUB transforma dados brutos de conformidade em decisões estratégicas, protegendo o ativo mais valioso das organizações: a saúde e a resiliência das suas equipas.
+AI system for managing workplace mental health risks and ensuring regulatory compliance.
 
 ---
 
-## 🚀 Funcionalidades de Elite
+## 🚨 Problem
 
-- **🛡️ Vigilância Ativa M2.7**: Protocolo proprietário de detecção precoce de risco psicossocial e anomalias clínicas (Burnout, Fadiga, Stress).
-- **📋 Auditoria Automática (Lei 102/2009)**: Geração instantânea de relatórios para a ACT (Autoridade para as Condições do Trabalho) e Fichas de Aptidão Médica.
-- **👁️ Dashboards de Alta Densidade**: Visão PALANTIR-Style para RH, Gestão de Unidade e Unidades Clínicas.
-- **🤖 Governança de IA Auditada**: Transparência total seguindo os requisitos do EU AI Act para sistemas de alto risco.
+Companies are legally required to address mental health and psychosocial risks.
 
-## 🛠️ Stack Tecnológica
+But in practice:
 
-Assegurando performance, escalabilidade e soberania de dados:
-
-- **Frontend**: [Next.js 15](https://nextjs.org/) (App Router) + React 19 + Framer Motion.
-- **Backend/DB**: [Supabase](https://supabase.com/) (PostgreSQL + RLS Auth).
-- **Inteligência**: Cognitive Engine M2.7 via OpenRouter (Zero-Latency).
-- **Design System**: Deep Glassmorphism (Tailwind CSS custom).
+- No structured systems for early detection  
+- HR teams are overloaded  
+- Compliance is manual and fragmented  
+- Employees often suffer in silence  
 
 ---
 
-## ⚙️ Configuração Segura (Setup)
+## 💡 Solution
 
-O ecossistema AEGIS HUB utiliza um protocolo rigoroso de variáveis de ambiente.
+AegisHub is an AI-powered system that:
 
-1. **Clonar o Repositório**:
-   ```bash
-   git clone https://github.com/negraodenio/MindOPS_PT.git
-   ```
-
-2. **Protocolo de Ambiente**:
-   ```bash
-   cp .env.example .env
-   ```
-   *Preencha o ficheiro `.env` com as suas chaves do Supabase e OpenRouter. O ficheiro `.env` está blindado contra indexação do Git.*
-
-3. **Deploy Local**:
-   ```bash
-   npm install
-   npm run dev
-   ```
-
-## ⚖️ Conformidade e Auditoria
-
-A infraestrutura foi desenhada para resistir a auditorias regulatórias globais:
-- **RGPD**: Soberania de dados e encriptação *at-rest*.
-- **ACT (PT)**: Modelos de dados alinhados com os requisitos da Autoridade para as Condições do Trabalho.
-- **EU AI Act**: Classificação de risco e auditabilidade algorítmica integradas.
+- Detects psychosocial risks early  
+- Supports continuous employee monitoring (non-intrusive)  
+- Automates compliance and reporting  
+- Provides actionable insights for HR and leadership  
 
 ---
 
-**AEGIS HUB: Protection through Intelligence.** 🛰️⚡🏆💎
+## ⚙️ Core Capabilities
+
+- 🧠 Early risk detection (burnout, stress, fatigue)  
+- 📋 Automated compliance reports (aligned with Portuguese law — Lei 102/2009)  
+- 📊 Real-time dashboards for HR and management  
+- 🤖 AI-driven triage and monitoring  
+- 🔐 Audit-ready system aligned with EU AI Act  
+
+---
+
+## 🧠 Architecture
+
+- LLM layer → interpretation and interaction  
+- Structured assessment layer → validated mental health frameworks  
+- Memory layer (RAG) → contextual understanding  
+- Execution layer → alerts, reports, workflows  
+
+---
+
+## 📈 Why this matters
+
+Mental health is no longer optional — it’s a legal and operational requirement.
+
+AegisHub helps organizations:
+
+- reduce risk  
+- ensure compliance  
+- support employees effectively  
+
+---
+
+## 🛠 Tech Stack
+
+- Next.js + TypeScript  
+- Supabase (PostgreSQL + RLS)  
+- Multi-LLM (via OpenRouter)  
+- API-first architecture  
+
+---
+
+## 👥 Who is this for
+
+- HR teams  
+- Companies operating under Portuguese and EU regulations  
+- Organizations with high workforce stress environments  
+
+---
+
+## ⚠️ Note
+
+This repository focuses on system architecture and core logic.  
+Sensitive data and production environments are not exposed.
