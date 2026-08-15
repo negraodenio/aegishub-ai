@@ -38,16 +38,120 @@ export type Database = {
         Insert: { id: string; tenant_id: string; role: string; full_name: string; email: string; created_at?: string };
         Update: { id?: string; tenant_id?: string; role?: string; full_name?: string; email?: string; created_at?: string };
       };
+      tenant_memberships: {
+        Row: { id: string; user_id: string; tenant_id: string; role: string; status: string; created_at: string; updated_at: string };
+        Insert: { id?: string; user_id: string; tenant_id: string; role?: string; status?: string; created_at?: string; updated_at?: string };
+        Update: { id?: string; user_id?: string; tenant_id?: string; role?: string; status?: string; created_at?: string; updated_at?: string };
+      };
+
+      campaigns: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          code: string;
+          title: string;
+          description: string | null;
+          country_code: string;
+          methodology: string;
+          instruments: string[];
+          target_departments: string[] | null;
+          target_business_units: string[] | null;
+          min_anonymity_group_size: number;
+          start_date: string;
+          end_date: string;
+          status: "draft" | "scheduled" | "active" | "closing" | "completed" | "archived";
+          allow_voice_screening: boolean;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          code: string;
+          title: string;
+          description?: string | null;
+          country_code?: string;
+          methodology?: string;
+          instruments?: string[];
+          target_departments?: string[] | null;
+          target_business_units?: string[] | null;
+          min_anonymity_group_size?: number;
+          start_date: string;
+          end_date: string;
+          status?: "draft" | "scheduled" | "active" | "closing" | "completed" | "archived";
+          allow_voice_screening?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          code?: string;
+          title?: string;
+          description?: string | null;
+          country_code?: string;
+          methodology?: string;
+          instruments?: string[];
+          target_departments?: string[] | null;
+          target_business_units?: string[] | null;
+          min_anonymity_group_size?: number;
+          start_date?: string;
+          end_date?: string;
+          status?: "draft" | "scheduled" | "active" | "closing" | "completed" | "archived";
+          allow_voice_screening?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      campaign_participants: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          campaign_id: string;
+          employee_id: string;
+          status: string;
+          invited_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          campaign_id: string;
+          employee_id: string;
+          status?: string;
+          invited_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          campaign_id?: string;
+          employee_id?: string;
+          status?: string;
+          invited_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       employees: {
         Row: { id: string; tenant_id: string; external_id: string | null; full_name: string; department: string | null; business_unit: string | null; site_name: string | null; manager_id: string | null; shift_type: string | null; status: string; created_at: string };
         Insert: { id?: string; tenant_id: string; external_id?: string | null; full_name: string; department?: string | null; business_unit?: string | null; site_name?: string | null; manager_id?: string | null; shift_type?: string | null; status?: string; created_at?: string };
         Update: { id?: string; tenant_id?: string; external_id?: string | null; full_name?: string; department?: string | null; business_unit?: string | null; site_name?: string | null; manager_id?: string | null; shift_type?: string | null; status?: string; created_at?: string };
       };
       assessment_sessions: {
-        Row: { id: string; tenant_id: string; employee_id: string; protocol_version: string; vertical_pack: string; status: string; created_at: string; started_at: string | null; completed_at: string | null };
-        Insert: { id?: string; tenant_id: string; employee_id: string; protocol_version?: string; vertical_pack?: string; status?: string; created_at?: string; started_at?: string | null; completed_at?: string | null };
-        Update: { id?: string; tenant_id?: string; employee_id?: string; protocol_version?: string; vertical_pack?: string; status?: string; created_at?: string; started_at?: string | null; completed_at?: string | null };
+        Row: { id: string; tenant_id: string; campaign_id: string | null; employee_id: string; protocol_version: string; vertical_pack: string; status: string; created_at: string; started_at: string | null; completed_at: string | null };
+        Insert: { id?: string; tenant_id: string; campaign_id?: string | null; employee_id: string; protocol_version?: string; vertical_pack?: string; status?: string; created_at?: string; started_at?: string | null; completed_at?: string | null };
+        Update: { id?: string; tenant_id?: string; campaign_id?: string | null; employee_id?: string; protocol_version?: string; vertical_pack?: string; status?: string; created_at?: string; started_at?: string | null; completed_at?: string | null };
       };
+
       assessment_answers: {
         Row: { id: string; session_id: string; instrument_code: string; item_code: string; answer_numeric: number | null; answer_text: string | null; created_at: string };
         Insert: { id?: string; session_id: string; instrument_code: string; item_code: string; answer_numeric?: number | null; answer_text?: string | null; created_at?: string };
@@ -154,5 +258,25 @@ export type Database = {
         Update: { id?: string; decision_id?: string; action?: string; actor?: string; old_memory?: any | null; new_memory?: any | null; scaffold_changes?: any | null; created_at?: string };
       };
     };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      current_tenant_id: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
+      current_user_role: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
+    };
+    Enums: {
+      user_role: "admin" | "rh" | "manager" | "sst_professional" | "health_professional" | "employee" | "dpo" | "auditor";
+      campaign_status: "draft" | "scheduled" | "active" | "closing" | "completed" | "archived";
+      campaign_participant_status: "pending" | "invited" | "in_progress" | "completed" | "opted_out";
+    };
   };
 };
+
+

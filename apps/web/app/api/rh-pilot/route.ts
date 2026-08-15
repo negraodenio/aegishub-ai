@@ -9,14 +9,15 @@ import { MiniMaxSimulator, runSelfOptimization } from "@mindops/domain";
  */
 export async function GET(request: Request) {
   try {
-    // 🛡️ SECURITY: Authorization Check (Audit Fix #1)
     const { searchParams } = new URL(request.url);
     const token = searchParams.get("token") || request.headers.get("Authorization")?.replace("Bearer ", "");
-    const secret = process.env.CRON_SECRET || "fallback_debug_secret_dont_use_in_prod";
+    const secret = process.env.CRON_SECRET;
 
-    if (token !== secret) {
-      return NextResponse.json({ error: "Unauthorized access detected." }, { status: 401 });
+    // 🛡️ P0 SECURITY: Fail closed se CRON_SECRET não estiver configurado no ambiente
+    if (!secret || token !== secret) {
+      return NextResponse.json({ error: "Unauthorized: Invalid or missing authorization token." }, { status: 401 });
     }
+
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

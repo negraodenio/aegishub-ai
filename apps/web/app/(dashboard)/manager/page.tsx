@@ -4,35 +4,29 @@ import { createClient } from "../../../utils/supabase/server";
 import { BrainCircuit, Users, AlertTriangle, ShieldCheck, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
+import { resolveTenantContext } from "@/lib/tenant-context";
+
 export default async function LineManagerDashboardPage({
   searchParams
 }: {
   searchParams: Promise<{ tenantId?: string; orgUnitId?: string }>;
 }) {
   try {
-    const { tenantId, orgUnitId } = await searchParams;
+    const { tenantId: requestedTenantId, orgUnitId } = await searchParams;
     const client = await createClient();
 
-    // 1. Tentar obter o tenantId do utilizador logado se não for fornecido via URL
-    let targetTenantId = tenantId;
-    let tenantName = "Portal de Gestão";
+    // 🛡️ P0 SECURITY: Resolução estrita do tenant via sessão autorizada
+    const tenantContext = await resolveTenantContext({
+      requiredRoles: ["admin", "manager", "rh", "sst_professional"],
+      requestedTenantId: requestedTenantId || null,
+      redirectToLoginOnFail: true
+    });
 
-    if (!targetTenantId) {
-      const { data: { user } } = await client.auth.getUser();
-      if (user) {
-        const { data: profile } = await client.from("profiles").select("tenant_id").eq("id", user.id).single();
-        targetTenantId = (profile as any)?.tenant_id;
-      }
-    }
+    const targetTenantId = tenantContext.tenantId;
+    const tenantName = tenantContext.tenantName;
 
-    // 2. Fallback para o tenant ACME se tudo falhar (para facilitar o teste do parceiro)
-    if (!targetTenantId) {
-       const { data: acme } = await client.from("tenants").select("id, name").eq("slug", "acme-corp").single();
-       targetTenantId = (acme as any)?.id || "e037420f-71b2-40e7-935f-170eb265b36a";
-       tenantName = (acme as any)?.name || "ACME Enterprise";
-    }
+    const data = await getManagerOverview(client as any, targetTenantId, orgUnitId);
 
-    const data = await getManagerOverview(client as any, targetTenantId!, orgUnitId);
 
     return (
       <main className="min-h-screen bg-[#020202] text-white p-8 animate-in fade-in duration-700 font-sans">

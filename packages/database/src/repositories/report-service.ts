@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "../client";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "../generated.types";
 
 export type ACTAnalyticReport = {
@@ -22,19 +22,24 @@ export type ACTAnalyticReport = {
 /**
  * Aggregates REAL clinical data for Portuguese ACT (Autoridade para as Condições do Trabalho)
  * conformant to Lei 102/2009 requirements for psychosocial risk monitoring.
+ * 
+ * 🛡️ P0 SECURITY: Accepts authenticated Supabase client to respect RLS and caller tenant isolation.
  */
-export async function generateLegalACTReport(tenantId: string): Promise<ACTAnalyticReport> {
+export async function generateLegalACTReport(
+  client: SupabaseClient<Database>,
+  tenantId: string
+): Promise<ACTAnalyticReport> {
   // 1. Get Aggregates (already pre-computed or from latest)
-  const { data: aggregate } = await supabaseAdmin
+  const { data: aggregate } = await client
     .from("manager_dashboard_aggregates")
     .select("*")
     .eq("tenant_id", tenantId)
     .order("computed_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   // 2. Get Departmental Breakdown (Live)
-  const { data: deptData } = await supabaseAdmin
+  const { data: deptData } = await client
     .from("employees")
     .select(`
       department,
@@ -60,25 +65,26 @@ export async function generateLegalACTReport(tenantId: string): Promise<ACTAnaly
     }
   });
 
-  const departmentalBreakdown = Object.entries(departmentsMap).map(([name, stats]) => ({
-    department: name,
-    assessed: stats.count,
-    avgScore: stats.count > 0 ? Math.round(stats.sum / stats.count) : 0
-  }));
+  const typedAggregate = aggregate as Database["public"]["Tables"]["manager_dashboard_aggregates"]["Row"] | null;
+  const totalEmployees = typedAggregate?.total_employees ?? (deptData?.length || 0);
+  const assessedCount = typedAggregate?.assessed_count ?? Object.values(departmentsMap).reduce((acc, curr) => acc + curr.count, 0);
 
   return {
     tenantId,
-    totalEmployees: aggregate?.total_employees ?? 0,
-    assessedCount: aggregate?.assessed_count ?? 0,
-    participationRate: aggregate?.total_employees 
-      ? Number(((aggregate.assessed_count / aggregate.total_employees) * 100).toFixed(1)) 
-      : 0,
+    totalEmployees,
+    assessedCount,
+    participationRate: totalEmployees > 0 ? Math.round((assessedCount / totalEmployees) * 100) : 0,
     riskDistribution: {
-      low: aggregate?.low_risk_count ?? 0,
-      moderate: aggregate?.moderate_risk_count ?? 0,
-      high: aggregate?.high_risk_count ?? 0,
-      critical: aggregate?.critical_risk_count ?? 0,
+      low: typedAggregate?.low_risk_count ?? 0,
+      moderate: typedAggregate?.moderate_risk_count ?? 0,
+      high: typedAggregate?.high_risk_count ?? 0,
+      critical: typedAggregate?.critical_risk_count ?? 0,
     },
-    departmentalBreakdown
+    departmentalBreakdown: Object.entries(departmentsMap).map(([dept, val]) => ({
+      department: dept,
+      assessed: val.count,
+      avgScore: val.count > 0 ? Math.round(val.sum / val.count) : 0
+    }))
   };
+
 }

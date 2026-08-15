@@ -4,35 +4,29 @@ import { createClient } from "../../../utils/supabase/server";
 import { BrainCircuit, Activity, AlertCircle, Clock, CheckCircle2, ChevronRight, Stethoscope, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
+import { resolveTenantContext } from "@/lib/tenant-context";
+
 export default async function ClinicalPortalPage({
   searchParams
 }: {
   searchParams: Promise<{ tenantId?: string }>;
 }) {
   try {
-    const { tenantId } = await searchParams;
+    const { tenantId: requestedTenantId } = await searchParams;
     const client = await createClient();
 
-    // 1. Tentar obter o tenantId do utilizador logado se não for fornecido via URL
-    let targetTenantId = tenantId;
-    let tenantName = "Ecossistema Clínico";
+    // 🛡️ P0 SECURITY: Acesso restrito a profissionais de saúde / SST no tenant autorizado
+    const tenantContext = await resolveTenantContext({
+      requiredRoles: ["admin", "health_professional", "sst_professional"],
+      requestedTenantId: requestedTenantId || null,
+      redirectToLoginOnFail: true
+    });
 
-    if (!targetTenantId) {
-      const { data: { user } } = await client.auth.getUser();
-      if (user) {
-        const { data: profile } = await client.from("profiles").select("tenant_id").eq("id", user.id).single();
-        targetTenantId = (profile as any)?.tenant_id;
-      }
-    }
+    const targetTenantId = tenantContext.tenantId;
+    const tenantName = tenantContext.tenantName;
 
-    // 2. Fallback para o tenant ACME se tudo falhar (para facilitar o teste do parceiro)
-    if (!targetTenantId) {
-       const { data: acme } = await client.from("tenants").select("id, name").eq("slug", "acme-corp").single();
-       targetTenantId = (acme as any)?.id || "e037420f-71b2-40e7-935f-170eb265b36a";
-       tenantName = (acme as any)?.name || "ACME Enterprise";
-    }
+    const { data: queue, error } = await getClinicalReviewQueue(client as any, targetTenantId);
 
-    const { data: queue, error } = await getClinicalReviewQueue(client as any, targetTenantId!);
 
   const stats = {
     pending: queue?.length ?? 0,

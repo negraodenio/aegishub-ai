@@ -1,147 +1,147 @@
-import { RHService } from "@mindops/database";
 export const dynamic = "force-dynamic";
+
 import { createClient } from "../../../utils/supabase/server";
-import { CoverageCard } from "../../../features/rh-dashboard/components/CoverageCard";
-import { ComplianceScoreCard } from "../../../features/rh-dashboard/components/ComplianceScoreCard";
-import { RiskHeatmap } from "../../../features/rh-dashboard/components/RiskHeatmap";
-import { ActionQueueTable } from "../../../features/rh-dashboard/components/ActionQueueTable";
-import { RiskOverviewCard } from "../../../features/dashboard/components/RiskOverviewCard";
-import Link from "next/link";
-import { BrainCircuit, Building2 } from "lucide-react";
+import { resolveTenantContext } from "@/lib/tenant-context";
+import { getCampaignsByTenant, getCampaignAggregates, type Campaign } from "@mindops/database";
+import { WorkspaceHeader } from "../../../features/rh-dashboard/components/WorkspaceHeader";
+import { CampaignSelector } from "../../../features/rh-dashboard/components/CampaignSelector";
+import { EmptyCampaignState } from "../../../features/rh-dashboard/components/EmptyCampaignState";
+import { EnterpriseKPIGrid } from "../../../features/rh-dashboard/components/EnterpriseKPIGrid";
+import { AnonymizedHeatmap } from "../../../features/rh-dashboard/components/AnonymizedHeatmap";
+import { OrganizationalActionTable } from "../../../features/rh-dashboard/components/OrganizationalActionTable";
 import { ACTDownloadButton } from "../../../features/rh-dashboard/components/ACTDownloadButton";
 import { NR1DownloadButton } from "../../../features/rh-dashboard/components/NR1DownloadButton";
-import { getCountryProfile } from "@mindops/domain";
+import Link from "next/link";
+import { BrainCircuit, AlertTriangle, ShieldCheck } from "lucide-react";
 
 export default async function RHDashboardPage({
   searchParams
 }: {
-  searchParams: Promise<{ tenantId?: string; country?: string }>;
+  searchParams: Promise<{ tenantId?: string; campaignId?: string; country?: string }>;
 }) {
   try {
-    const { tenantId, country } = await searchParams;
+    const { tenantId: requestedTenantId, campaignId: requestedCampaignId, country: requestedCountry } = await searchParams;
     const client = await createClient();
     
-    // 1. Tentar obter o tenantId e country_code do utilizador logado se não for fornecido via URL
-    let targetTenantId = tenantId;
-    let tenantName = "Empresa Demonstrativa";
-    let countryCode = country || "PT";
+    // 🛡️ P0/P1 SECURITY: Resolução estrita do tenant via sessão e memberships autenticadas
+    const tenantContext = await resolveTenantContext({
+      requiredRoles: ["admin", "rh", "sst_professional", "manager"],
+      requestedTenantId: requestedTenantId || null,
+      redirectToLoginOnFail: true
+    });
 
-    if (!targetTenantId) {
-      const { data: { user } } = await client.auth.getUser();
-      if (user) {
-        const { data: profile } = await client.from("profiles").select("tenant_id").eq("id", user.id).single();
-        targetTenantId = (profile as any)?.tenant_id;
+    const targetTenantId = tenantContext.tenantId;
+    const tenantName = tenantContext.tenantName;
+    const countryCode = (requestedCountry || tenantContext.countryCode) as "PT" | "BR";
+
+    // 1. Obter todas as campanhas da organização
+    const campaigns = await getCampaignsByTenant(client as any, targetTenantId);
+
+    // 2. Determinar a campanha ativa / selecionada
+    let activeCampaign: Campaign | null = null;
+    if (campaigns.length > 0) {
+      if (requestedCampaignId) {
+        activeCampaign = campaigns.find(c => c.id === requestedCampaignId) || campaigns[0] || null;
+      } else {
+        // Seleciona a primeira com status 'active', ou a mais recente
+        activeCampaign = campaigns.find(c => c.status === "active") || campaigns[0] || null;
       }
     }
 
-    // 2. Fallback para o tenant ACME se tudo falhar (para facilitar o teste do parceiro)
-    if (!targetTenantId) {
-       const { data: acme } = await client.from("tenants").select("id, name, country_code").eq("slug", "acme-corp").single();
-       targetTenantId = (acme as any)?.id || "e037420f-71b2-40e7-935f-170eb265b36a";
-       tenantName = (acme as any)?.name || "ACME Enterprise";
-       countryCode = country || (acme as any)?.country_code || "PT";
-     } else {
-        const { data: currentTenant } = await (client.from("tenants") as any).select("name, country_code").eq("id", targetTenantId).single();
-        if (currentTenant) {
-          tenantName = (currentTenant as any).name || tenantName;
-          countryCode = country || (currentTenant as any).country_code || "PT";
-        }
-     }
+    // 3. Obter métricas e agregações da campanha aplicando o limiar de anonimato (N >= 5)
+    let aggregates = null;
+    if (activeCampaign) {
+      aggregates = await getCampaignAggregates(client as any, activeCampaign);
+    }
 
-    const countryProfile = getCountryProfile(countryCode);
-    const { overview, heatmap, actionQueue } = await RHService.getDashboardData(client as any, targetTenantId!);
+    const canManageCampaigns = ["admin", "rh", "sst_professional"].includes(tenantContext.role);
 
     return (
-      <main className="space-y-12 p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
-      <header className="flex items-end justify-between border-b border-white/10 pb-8">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-3">
-             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
-                <BrainCircuit className="h-6 w-6 text-black" />
-             </div>
-             <h1 className="text-2xl font-black tracking-tighter italic uppercase italic">AEGIS <span className="font-light not-italic text-neutral-500 ml-1">HUB</span> / {countryProfile.countryCode === "BR" ? "SST & NR-1" : "RH & SST"}</h1>
-          </div>
-          <div className="flex items-center gap-2 text-indigo-400">
-            <Building2 className="h-4 w-4" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-              Organização Auditada: {tenantName} // {countryProfile.flagEmoji} {countryProfile.name} ({countryProfile.terminology.mainStandardName})
-            </span>
-          </div>
-          <p className="mt-2 text-sm text-slate-400 max-w-lg">
-            {countryProfile.countryCode === "BR"
-              ? "Painel integrado de inteligência em riscos psicossociais, escuta ativa (Worker Voice) e evidências para o PGR."
-              : "Visão executiva estratégica de risco psicossocial, cobertura ocupacional e conformidade normativa (Lei 102/2009)."}
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          {countryProfile.countryCode === "BR" ? (
-            <NR1DownloadButton tenantName={tenantName} />
-          ) : (
-            <ACTDownloadButton tenantName={tenantName} />
-          )}
-          <Link 
-            href={"/rh/intelligence" as any} 
-            className="flex items-center gap-2 rounded-xl bg-indigo-500/10 px-5 py-2.5 text-xs font-bold tracking-widest uppercase text-indigo-400 hover:bg-indigo-500/20 transition-all shadow-lg border border-indigo-400/20 active:scale-95"
-          >
-            <BrainCircuit className="h-4 w-4" />
-            Intelligence Center M2.7
-          </Link>
-        </div>
-      </header>
+      <main className="space-y-8 p-6 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500 font-sans">
+        {/* 1. Header do Workspace & Jurisdição */}
+        <WorkspaceHeader
+          tenantName={tenantName}
+          countryCode={countryCode}
+          userRole={tenantContext.role}
+          userEmail={tenantContext.user.email || ""}
+          memberships={tenantContext.availableMemberships}
+        />
 
-      <section
-        className="grid gap-4"
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}
-      >
-        <CoverageCard
-          assessed={overview.assessedEmployees}
-          total={overview.totalEmployees}
-          coveragePercent={overview.coveragePercent}
+        {/* 2. Barra de Seleção e Controle de Campanha */}
+        <CampaignSelector
+          campaigns={campaigns}
+          activeCampaign={activeCampaign}
+          canCreateCampaign={canManageCampaigns}
         />
-        <ComplianceScoreCard score={overview.complianceScore} />
-        <RiskOverviewCard
-          label="Risco alto / crítico"
-          value={overview.highRiskPopulationPercent}
-          unit="%"
-          level={overview.highRiskPopulationPercent >= 20 ? "high" : "moderate"}
-        />
-        <RiskOverviewCard
-          label="Alertas abertos"
-          value={overview.openAlerts}
-          level={overview.openAlerts > 10 ? "moderate" : "low"}
-        />
-        <RiskOverviewCard
-          label="Encaminhamentos"
-          value={overview.openReferrals}
-          level={overview.openReferrals > 5 ? "moderate" : "low"}
-        />
-        <RiskOverviewCard
-          label="Score médio"
-          value={overview.avgCompositeRiskScore}
-          level={overview.avgCompositeRiskScore >= 55 ? "high" : "moderate"}
-        />
-      </section>
 
-      <RiskHeatmap rows={heatmap} />
-      <ActionQueueTable items={actionQueue as any} />
-    </main>
+        {/* 3. Empty State ou Dashboard Operacional */}
+        {!activeCampaign || campaigns.length === 0 ? (
+          <EmptyCampaignState tenantName={tenantName} hasCampaigns={campaigns.length > 0} />
+        ) : (
+          <>
+            {/* 4. Grid de 5 Indicadores Fundamentais */}
+            <EnterpriseKPIGrid aggregates={aggregates} />
+
+            {/* 5. Mapa de Calor por Departamento (Protegido por N >= 5) */}
+            <AnonymizedHeatmap
+              departments={aggregates?.departmentHeatmap || []}
+              minAnonymityThreshold={activeCampaign.min_anonymity_group_size || 5}
+            />
+
+            {/* 6. Gestão de Medidas Preventivas (Zero Dados Individuais ao RH) */}
+            <OrganizationalActionTable
+              actions={aggregates?.organizationalActions || []}
+            />
+
+            {/* 7. Exportação Regulatória & Links Oficiais */}
+            <footer className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/10 text-xs">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white">Relatórios & Evidências Estatutárias</h4>
+                  <p className="text-[11px] text-neutral-400">
+                    Exportação de dossiê em conformidade com {countryCode === "PT" ? "ACT (Lei 102/2009)" : "MTE (NR-1 / PGR)"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {countryCode === "BR" ? (
+                  <NR1DownloadButton tenantName={tenantName} />
+                ) : (
+                  <ACTDownloadButton tenantName={tenantName} />
+                )}
+                <Link
+                  href={"/rh/intelligence" as any}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 font-semibold transition-all border border-white/10"
+                >
+                  <BrainCircuit className="h-4 w-4 text-cyan-400" />
+                  <span>AI Governance Log</span>
+                </Link>
+              </div>
+            </footer>
+          </>
+        )}
+      </main>
     );
   } catch (error: any) {
     console.error("[RH_DASHBOARD_ERROR]", error);
     return (
       <div className="min-h-screen bg-[#020202] text-white flex flex-col items-center justify-center p-10 font-sans">
-        <div className="h-20 w-20 rounded-[28px] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(244,63,94,0.1)]">
-           <BrainCircuit className="h-10 w-10 text-rose-500" />
+        <div className="h-20 w-20 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-6 shadow-lg shadow-rose-500/10">
+          <BrainCircuit className="h-10 w-10 text-rose-500" />
         </div>
-        <h2 className="text-2xl font-black italic uppercase tracking-tighter">Erro de <span className="text-rose-500">Sincronização</span></h2>
-        <p className="text-slate-500 mt-4 text-sm max-w-md text-center uppercase font-bold tracking-widest leading-relaxed">
-          Não foi possível carregar os dados do Intelligence Center. Certifique-se que o Tenant ID é válido e que o protocolo M2.7 está ativo.
+        <h2 className="text-xl font-bold tracking-tight text-white">Erro de Carregamento do Painel</h2>
+        <p className="text-neutral-400 mt-2 text-xs max-w-md text-center">
+          {error.message || "Não foi possível carregar as informações do dashboard. Verifique sua sessão."}
         </p>
-        <div className="mt-10 p-6 bg-white/[0.02] border border-white/5 rounded-3xl text-left font-mono text-[10px] text-slate-600 overflow-auto max-w-2xl mx-auto shadow-inner">
-           {error.message || "Erro desconhecido na camada de dados RH."}
-        </div>
-        <Link href="/auth/login" className="mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 hover:underline">
-          Reiniciar Sessão de Auditoria
+        <Link
+          href="/auth/login"
+          className="mt-8 px-5 py-2.5 rounded-xl bg-emerald-500 text-black text-xs font-bold uppercase tracking-wider hover:bg-emerald-400 transition-all"
+        >
+          Reiniciar Sessão
         </Link>
       </div>
     );

@@ -2,38 +2,37 @@
 
 import { createClient } from "../../../utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { resolveTenantContext } from "@/lib/tenant-context";
 
 export async function getEmployeesAction() {
   const supabase = await createClient();
-  
-  // No mundo real, filtraríamos pelo tenant_id da sessão do admin.
-  // Como estamos em POC, trazemos os mais recentes.
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("tenant_id")
-    .eq("id", user.id)
-    .single();
+  // 🛡️ P0 SECURITY: Resolução do tenant e validação de RBAC
+  try {
+    const context = await resolveTenantContext({
+      requiredRoles: ["admin", "rh", "sst_professional"],
+      redirectToLoginOnFail: false
+    });
 
-  if (!profile) return [];
+    const { data, error } = await supabase
+      .from("employees")
+      .select("*, assessment_sessions(status)")
+      .eq("tenant_id", context.tenantId)
+      .order("created_at", { ascending: false });
 
-  const { data, error } = await supabase
-    .from("employees")
-    .select("*, assessment_sessions(status)")
-    .eq("tenant_id", (profile as any).tenant_id)
-    .order("created_at", { ascending: false });
+    if (error) {
+      console.error("Fetch employees error:", error);
+      return [];
+    }
 
-  if (error) {
-    console.error("Fetch employees error:", error);
+    return (data || []).map((emp: any) => ({
+      ...emp,
+      isCompleted: emp.assessment_sessions?.[0]?.status === "completed"
+    }));
+  } catch (err: any) {
+    console.warn("[SECURITY] getEmployeesAction unauthorized attempt:", err.message);
     return [];
   }
-
-  return (data || []).map((emp: any) => ({
-    ...emp,
-    isCompleted: emp.assessment_sessions?.[0]?.status === "completed"
-  }));
 }
 
 export async function createEmployeeAction(formData: {
@@ -43,30 +42,30 @@ export async function createEmployeeAction(formData: {
 }) {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Unauthorized" };
+  // 🛡️ P0 SECURITY: Validação estrita de sessão, membership e RBAC
+  try {
+    const context = await resolveTenantContext({
+      requiredRoles: ["admin", "rh", "sst_professional"],
+      redirectToLoginOnFail: false
+    });
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("tenant_id")
-    .eq("id", user.id)
-    .single();
+    const { data, error } = await (supabase.from("employees") as any).insert({
+      full_name: formData.fullName,
+      department: formData.department,
+      business_unit: formData.businessUnit,
+      tenant_id: context.tenantId,
+      status: "active"
+    }).select().single();
 
-  if (!profile) return { success: false, error: "No organization found" };
+    if (error) {
+      console.error("Create employee error:", error);
+      return { success: false, error: error.message };
+    }
 
-  const { data, error } = await (supabase.from("employees") as any).insert({
-    full_name: formData.fullName,
-    department: formData.department,
-    business_unit: formData.businessUnit,
-    tenant_id: (profile as any).tenant_id,
-    status: "active"
-  }).select().single();
-
-  if (error) {
-    console.error("Create employee error:", error);
-    return { success: false, error: error.message };
+    revalidatePath("/admin/team");
+    return { success: true, employeeId: data.id };
+  } catch (err: any) {
+    console.warn("[SECURITY] createEmployeeAction unauthorized attempt:", err.message);
+    return { success: false, error: "Unauthorized: Insufficient role permissions or invalid organization context." };
   }
-
-  revalidatePath("/admin/team");
-  return { success: true, employeeId: data.id };
 }
