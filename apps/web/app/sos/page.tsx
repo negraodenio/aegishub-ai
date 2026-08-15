@@ -91,7 +91,7 @@ export default function SOSPortalPage() {
           </div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-neutral-400" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Lei 93/2021 Compliant</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Alinhado à Lei 93/2021</span>
           </div>
         </div>
 

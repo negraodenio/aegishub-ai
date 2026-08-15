@@ -27,8 +27,9 @@ export function ActionQueueTable({ items }: { items: RHActionQueueItem[] }) {
               <th className="px-6 py-4 text-left font-semibold text-[11px] uppercase tracking-wider">Responsável</th>
               <th className="px-6 py-4 text-left font-semibold text-[11px] uppercase tracking-wider">Prazo</th>
               <th className="px-6 py-4 text-left font-semibold text-[11px] uppercase tracking-wider">Prioridade</th>
+              <th className="px-6 py-4 text-center font-semibold text-[11px] uppercase tracking-wider">Reavaliação</th>
               <th className="px-6 py-4 text-center font-semibold text-[11px] uppercase tracking-wider">Biofonia</th>
-              <th className="px-6 py-4 text-right font-semibold text-[11px] uppercase tracking-wider">Ações</th>
+              <th className="px-6 py-4 text-right font-semibold text-[11px] uppercase tracking-wider">Ações / Evidência</th>
             </tr>
           </thead>
           <tbody>
@@ -40,9 +41,18 @@ export function ActionQueueTable({ items }: { items: RHActionQueueItem[] }) {
                 <td className="px-6 py-4 text-slate-300 font-medium">{item.ownerName ?? "—"}</td>
                 <td className="px-6 py-4 text-slate-500 text-xs">{item.dueDate ?? "—"}</td>
                 <td className="px-6 py-4">
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter shadow-sm border border-white/5 ${badgeMap[item.priority]}`}>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter shadow-sm border border-white/5 ${badgeMap[item.priority] || badgeMap.medium}`}>
                     {item.priority}
                   </span>
+                </td>
+                <td className="px-6 py-4 text-center">
+                  {item.reassessmentStatus ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      {item.reassessmentStatus}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-600 uppercase font-bold tracking-widest">—</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-center">
                   {item.voicePath ? (
@@ -51,29 +61,35 @@ export function ActionQueueTable({ items }: { items: RHActionQueueItem[] }) {
                       className="inline-flex items-center gap-2 rounded-lg bg-indigo-500/10 px-3 py-1.5 text-[10px] font-bold text-indigo-400 hover:bg-indigo-500/20 transition-all border border-indigo-400/20"
                     >
                       <PlayCircle className="h-4 w-4" />
-                      Ouvir Fadiga
+                      Ouvir
                     </button>
                   ) : (
                     <span className="text-[10px] text-slate-600 uppercase font-bold tracking-widest">N/A</span>
                   )}
                 </td>
                 <td className="px-6 py-4 text-right">
-                   <button 
-                    onClick={async () => {
-                      const res = await getAssessmentInviteAction(item.employeeId);
-                      if (res.success && res.token) {
-                        const url = `${window.location.origin}/assessment/${res.token}`;
-                        navigator.clipboard.writeText(url);
-                        alert("Link de convite SEGURO copiado!");
-                      } else {
-                        alert("Erro ao gerar convite seguro.");
-                      }
-                    }}
-                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
-                   >
-                    <UserPlus className="h-3 w-3" />
-                    Gerar Convite
-                   </button>
+                  {item.employeeId ? (
+                    <button 
+                      onClick={async () => {
+                        const res = await getAssessmentInviteAction(item.employeeId);
+                        if (res.success && res.token) {
+                          const url = `${window.location.origin}/assessment/${res.token}`;
+                          navigator.clipboard.writeText(url);
+                          alert("Link de convite SEGURO copiado!");
+                        } else {
+                          alert("Erro ao gerar convite seguro.");
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
+                    >
+                      <UserPlus className="h-3 w-3" />
+                      Convite
+                    </button>
+                  ) : (
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                      Evidência Registada
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}

@@ -1,8 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { Database } from "@mindops/database";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { MiniMaxSimulator } from "./m27-simulator";
 
-type AppSupabaseClient = ReturnType<typeof createClient<Database>>;
+type AppSupabaseClient = SupabaseClient<any>;
 
 /**
  * Executes the Human-in-The-Loop explicit validation flow

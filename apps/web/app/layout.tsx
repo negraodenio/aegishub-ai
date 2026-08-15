@@ -11,8 +11,8 @@ const inter = Inter({
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AEGIS HUB // Intelligence Ocupacional",
-  description: "A plataforma líder para diagnóstico psicossocial e intervenção assistida por IA (M2.7) no contexto da AEGIS HUB.",
+  title: "AegisHub AI — AI-Powered Psychosocial Risk Intelligence",
+  description: "Plataforma de Inteligência Artificial para avaliação, prevenção, monitoramento e gestão de riscos psicossociais para empresas e operadores de SST (Portugal e Brasil).",
   manifest: "/manifest.json",
 };
 

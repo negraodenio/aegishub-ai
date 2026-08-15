@@ -19,7 +19,7 @@ export interface RHBusinessUnitRisk {
 
 export interface RHActionQueueItem {
   id: string;
-  type: "nr1_action_plan" | "risk_alert" | "return_to_work" | "campaign" | "clinical_followup";
+  type: "nr1_action_plan" | "risk_alert" | "return_to_work" | "campaign" | "clinical_followup" | "sst_preventive_measure";
   priority: "low" | "medium" | "high" | "critical";
   title: string;
   employeeId: string; // Mandatory for secure invite generation
@@ -27,5 +27,8 @@ export interface RHActionQueueItem {
   businessUnit?: string;
   dueDate?: string;
   voicePath?: string;
-  status: "open" | "in_progress" | "done" | "overdue";
+  evidenceUrl?: string;
+  reassessmentStatus?: string;
+  hazardFactor?: string;
+  status: "open" | "in_progress" | "done" | "overdue" | "planned" | "completed";
 }

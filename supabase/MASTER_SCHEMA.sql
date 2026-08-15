@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS tenants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
+  country_code VARCHAR(2) NOT NULL DEFAULT 'PT',
+  tax_id TEXT,
+  economic_activity_code TEXT,
   vertical TEXT NOT NULL DEFAULT 'generic',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -213,6 +216,14 @@ CREATE TABLE IF NOT EXISTS corrective_actions (
   status TEXT DEFAULT 'PLANNED',
   priority TEXT DEFAULT 'MEDIUM',
   assigned_to UUID REFERENCES employees(id),
+  responsible_name TEXT,
+  hazard_factor TEXT,
+  process_activity TEXT,
+  evidence_url TEXT,
+  evidence_notes TEXT,
+  effectiveness_score NUMERIC DEFAULT NULL,
+  reassessment_date DATE DEFAULT NULL,
+  reassessment_status TEXT DEFAULT 'pending',
   due_date DATE,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()

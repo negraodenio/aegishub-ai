@@ -9,19 +9,22 @@ import { RiskOverviewCard } from "../../../features/dashboard/components/RiskOve
 import Link from "next/link";
 import { BrainCircuit, Building2 } from "lucide-react";
 import { ACTDownloadButton } from "../../../features/rh-dashboard/components/ACTDownloadButton";
+import { NR1DownloadButton } from "../../../features/rh-dashboard/components/NR1DownloadButton";
+import { getCountryProfile } from "@mindops/domain";
 
 export default async function RHDashboardPage({
   searchParams
 }: {
-  searchParams: Promise<{ tenantId?: string }>;
+  searchParams: Promise<{ tenantId?: string; country?: string }>;
 }) {
   try {
-    const { tenantId } = await searchParams;
+    const { tenantId, country } = await searchParams;
     const client = await createClient();
     
-    // 1. Tentar obter o tenantId do utilizador logado se não for fornecido via URL
+    // 1. Tentar obter o tenantId e country_code do utilizador logado se não for fornecido via URL
     let targetTenantId = tenantId;
     let tenantName = "Empresa Demonstrativa";
+    let countryCode = country || "PT";
 
     if (!targetTenantId) {
       const { data: { user } } = await client.auth.getUser();
@@ -33,11 +36,19 @@ export default async function RHDashboardPage({
 
     // 2. Fallback para o tenant ACME se tudo falhar (para facilitar o teste do parceiro)
     if (!targetTenantId) {
-       const { data: acme } = await client.from("tenants").select("id, name").eq("slug", "acme-corp").single();
+       const { data: acme } = await client.from("tenants").select("id, name, country_code").eq("slug", "acme-corp").single();
        targetTenantId = (acme as any)?.id || "e037420f-71b2-40e7-935f-170eb265b36a";
        tenantName = (acme as any)?.name || "ACME Enterprise";
-    }
+       countryCode = country || (acme as any)?.country_code || "PT";
+     } else {
+        const { data: currentTenant } = await (client.from("tenants") as any).select("name, country_code").eq("id", targetTenantId).single();
+        if (currentTenant) {
+          tenantName = (currentTenant as any).name || tenantName;
+          countryCode = country || (currentTenant as any).country_code || "PT";
+        }
+     }
 
+    const countryProfile = getCountryProfile(countryCode);
     const { overview, heatmap, actionQueue } = await RHService.getDashboardData(client as any, targetTenantId!);
 
     return (
@@ -48,18 +59,26 @@ export default async function RHDashboardPage({
              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
                 <BrainCircuit className="h-6 w-6 text-black" />
              </div>
-             <h1 className="text-2xl font-black tracking-tighter italic uppercase italic">AEGIS <span className="font-light not-italic text-neutral-500 ml-1">HUB</span> / RH & SST</h1>
+             <h1 className="text-2xl font-black tracking-tighter italic uppercase italic">AEGIS <span className="font-light not-italic text-neutral-500 ml-1">HUB</span> / {countryProfile.countryCode === "BR" ? "SST & NR-1" : "RH & SST"}</h1>
           </div>
           <div className="flex items-center gap-2 text-indigo-400">
             <Building2 className="h-4 w-4" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Tenant Auditada: {tenantName} // Portugal</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+              Organização Auditada: {tenantName} // {countryProfile.flagEmoji} {countryProfile.name} ({countryProfile.terminology.mainStandardName})
+            </span>
           </div>
           <p className="mt-2 text-sm text-slate-400 max-w-lg">
-            Visão executiva estratégica de risco psicossocial, cobertura clínica e conformidade normativa (Lei 102/2009).
+            {countryProfile.countryCode === "BR"
+              ? "Painel integrado de inteligência em riscos psicossociais, escuta ativa (Worker Voice) e evidências para o PGR."
+              : "Visão executiva estratégica de risco psicossocial, cobertura ocupacional e conformidade normativa (Lei 102/2009)."}
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <ACTDownloadButton tenantName={tenantName} />
+          {countryProfile.countryCode === "BR" ? (
+            <NR1DownloadButton tenantName={tenantName} />
+          ) : (
+            <ACTDownloadButton tenantName={tenantName} />
+          )}
           <Link 
             href={"/rh/intelligence" as any} 
             className="flex items-center gap-2 rounded-xl bg-indigo-500/10 px-5 py-2.5 text-xs font-bold tracking-widest uppercase text-indigo-400 hover:bg-indigo-500/20 transition-all shadow-lg border border-indigo-400/20 active:scale-95"

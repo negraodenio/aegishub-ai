@@ -124,7 +124,7 @@ export function WorkerWizard({ token }: WorkerWizardProps) {
       if (result.success) {
         setStep("finished");
       } else {
-        alert("Erro ao submeter avaliação: " + result.error);
+        alert("Erro ao submeter avaliação: " + ((result as any).error || "Erro desconhecido"));
       }
     } catch (err) {
       console.error(err);
@@ -243,42 +243,62 @@ export function WorkerWizard({ token }: WorkerWizardProps) {
 
           {step === "instrument" && currentInstrument && (
             <div className="animate-in fade-in duration-300">
-               <div className="flex flex-col mb-8">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">
-                      {currentInstrument.name}
+                <div className="flex flex-col mb-6">
+                  <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-2.5 py-1 rounded-md border border-indigo-100 uppercase tracking-wider">
+                        Módulo {currentInstrumentIdx + 1} de {instruments.length}
+                      </span>
+                      <span className="text-xs font-bold text-slate-700">
+                        {currentInstrument.name}
+                      </span>
+                    </div>
+                    <span className="text-xs text-slate-400 font-mono font-medium">
+                      Pergunta {currentQuestion + 1} de {currentInstrument.questions.length}
                     </span>
-                    <span className="text-sm text-slate-400 font-mono">
-                      {currentQuestion + 1} / {currentInstrument.questions.length}
+                  </div>
+                  
+                  {/* Category & Context Subtitle */}
+                  <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                    {currentInstrument.questions[currentQuestion]?.domain && (
+                      <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 font-medium text-[11px]">
+                        Fator: {currentInstrument.questions[currentQuestion].domain}
+                      </span>
+                    )}
+                    <span className="text-slate-400">•</span>
+                    <span className="italic text-slate-500 text-[11px]">
+                      {currentInstrument.scaleType === "0-3" 
+                        ? "Frequência nas últimas 2 semanas" 
+                        : "Vivência habitual no trabalho"}
                     </span>
                   </div>
                 </div>
 
-                <div className="h-2 w-full bg-slate-100 rounded-full mb-12">
+                <div className="h-1.5 w-full bg-slate-100 rounded-full mb-8 overflow-hidden">
                   <div 
-                    className="h-full bg-indigo-500 rounded-full transition-all duration-300" 
-                    style={{ width: `${((currentQuestion) / currentInstrument.questions.length) * 100}%` }} 
+                    className="h-full bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full transition-all duration-300" 
+                    style={{ width: `${((currentQuestion + 1) / currentInstrument.questions.length) * 100}%` }} 
                   />
                 </div>
 
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-12 leading-tight">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-10 leading-tight">
                   {currentInstrument.questions[currentQuestion]?.text}
                 </h2>
 
                 <div className={`grid grid-cols-1 ${currentInstrument.scaleType === "0-3" ? "sm:grid-cols-4" : "sm:grid-cols-5"} gap-3`}>
                   {(currentInstrument.scaleType === "0-3" 
-                    ? ["Nunca", "Vários dias", "Mais de metade", "Quase todos"]
-                    : ["Nunca", "Raramente", "Às vezes", "Frequente", "Sempre"]
+                    ? ["Nunca / Nenhuma vez", "Vários dias", "Mais de metade dos dias", "Quase todos os dias"]
+                    : ["Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre"]
                   ).map((label, idx) => (
                     <button 
                       key={label}
                       onClick={() => handleAnswer(currentInstrument.scaleType === "0-3" ? idx : idx + 1)}
-                      className="flex flex-col items-center justify-center p-4 border-2 border-slate-100 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50 transition min-h-[100px]"
+                      className="group flex flex-col items-center justify-center p-4 border-2 border-slate-100 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50/50 transition-all duration-150 min-h-[100px] active:scale-95 text-center"
                     >
-                      <span className="bg-white border border-slate-200 h-8 w-8 rounded-full flex items-center justify-center mb-3 shadow-sm text-slate-400 text-sm font-bold">
+                      <span className="bg-white group-hover:bg-indigo-600 group-hover:text-white border border-slate-200 h-8 w-8 rounded-full flex items-center justify-center mb-2.5 shadow-sm text-slate-500 text-xs font-bold transition-colors">
                         {currentInstrument.scaleType === "0-3" ? idx : idx + 1}
                       </span>
-                      <span className="text-sm font-medium text-slate-700 text-center">{label}</span>
+                      <span className="text-xs sm:text-sm font-medium text-slate-700 group-hover:text-indigo-900 leading-snug">{label}</span>
                     </button>
                   ))}
                 </div>

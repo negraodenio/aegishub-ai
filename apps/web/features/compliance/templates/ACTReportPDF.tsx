@@ -32,7 +32,7 @@ export const ACTReportPDF = ({ data }: { data: ACTReportData }) => (
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Relatório de Avaliação de Riscos Psicossociais</Text>
-        <Text style={styles.subtitle}>DOCUMENTO OFICIAL: LEI 102/2009 (AUTORIDADE PARA AS CONDIÇÕES DO TRABALHO)</Text>
+        <Text style={styles.subtitle}>RELATÓRIO TÉCNICO DE AVALIAÇÃO: LEI 102/2009 (PROMOÇÃO DA SEGURANÇA E SAÚDE NO TRABALHO)</Text>
       </View>
 
       {/* Identidade */}

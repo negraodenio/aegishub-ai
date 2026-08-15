@@ -21,6 +21,7 @@ export const CompositeScoreInputSchema = z.object({
   burnoutScore: z.number().min(0).max(100).optional(),
   wellbeingScore: z.number().min(0).max(100).optional(),
   psychosocialRiskScore: z.number().min(0).max(100).optional(),
+  workerVoiceScore: z.number().min(0).max(100).optional(),
   voiceSignalScore: z.number().min(0).max(100).optional(),
   verticalPack: VerticalPackSchema
 });

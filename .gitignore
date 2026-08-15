@@ -30,3 +30,7 @@ supabase/.temp
 pnpm-lock.yaml
 package-lock.json
 yarn.lock
+
+# Standalone comparison workspaces
+TDHA/
+

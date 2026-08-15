@@ -168,7 +168,7 @@ export function DPODashboard({ companyName }: { companyName: string }) {
           </div>
           
           <button className="w-full mt-8 py-3 border border-dashed border-white/10 rounded-xl text-[10px] uppercase tracking-widest font-black text-slate-500 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all">
-            Ver Certificado Imutável
+            Ver Registo Criptográfico de Auditoria
           </button>
         </div>
       </div>

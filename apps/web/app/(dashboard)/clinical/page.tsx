@@ -55,7 +55,7 @@ export default async function ClinicalPortalPage({
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Auditando: {tenantName}</span>
           </div>
           <p className="text-sm text-neutral-500 max-w-lg">
-            Centro de Diagnóstico e Triagem Assistida. Monitorização de fadiga, burnout e resiliência biométrica.
+            Centro de Gestão de Risco Psicossocial e Triagem Assistida. Monitorização de indicadores de fadiga, sobrecarga e resiliência ocupacional.
           </p>
         </div>
         <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-6 py-2.5 text-xs font-bold text-emerald-400 uppercase tracking-widest">

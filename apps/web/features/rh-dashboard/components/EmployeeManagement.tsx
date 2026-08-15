@@ -176,7 +176,7 @@ export function EmployeeManagement() {
         <div>
           <h4 className="text-emerald-500 font-bold text-sm">Nota de Segurança Jurídica</h4>
           <p className="text-xs text-emerald-200/60 leading-relaxed mt-1">
-            Cada link é gerado com um Token Único e Anonimizado. Ao partilhar este link, o funcionário entra num silo clínico protegido. A empresa nunca terá acesso às respostas individuais, apenas ao diagnóstico de aptidão agregado.
+            Cada link é gerado com um Token Único e Anonimizado. Ao partilhar este link, o colaborador entra num silo de dados protegido. A empresa nunca terá acesso às respostas individuais, apenas aos indicadores de risco ocupacional agregados.
           </p>
         </div>
       </div>

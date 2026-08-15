@@ -2,9 +2,36 @@ export type Database = {
   public: {
     Tables: {
       tenants: {
-        Row: { id: string; name: string; slug: string; vertical: string; created_at: string };
-        Insert: { id?: string; name: string; slug: string; vertical?: string; created_at?: string };
-        Update: { id?: string; name: string; slug: string; vertical?: string; created_at?: string };
+        Row: { 
+          id: string; 
+          name: string; 
+          slug: string; 
+          country_code?: string;
+          tax_id?: string | null;
+          economic_activity_code?: string | null;
+          vertical: string; 
+          created_at: string 
+        };
+        Insert: { 
+          id?: string; 
+          name: string; 
+          slug: string; 
+          country_code?: string;
+          tax_id?: string | null;
+          economic_activity_code?: string | null;
+          vertical?: string; 
+          created_at?: string 
+        };
+        Update: { 
+          id?: string; 
+          name?: string; 
+          slug?: string; 
+          country_code?: string;
+          tax_id?: string | null;
+          economic_activity_code?: string | null;
+          vertical?: string; 
+          created_at?: string 
+        };
       };
       profiles: {
         Row: { id: string; tenant_id: string; role: string; full_name: string; email: string; created_at: string };
@@ -27,14 +54,84 @@ export type Database = {
         Update: { id?: string; session_id?: string; instrument_code?: string; item_code?: string; answer_numeric?: number | null; answer_text?: string | null; created_at?: string };
       };
       assessment_scores: {
-        Row: { id: string; session_id: string; phq9_score: number | null; gad7_score: number | null; burnout_score: number | null; wellbeing_score: number | null; psychosocial_risk_score: number | null; voice_signal_score: number | null; composite_risk_score: number; risk_level: string; requires_human_review: boolean; confidence: number; reasons: string[]; scored_at: string };
-        Insert: { id?: string; session_id: string; phq9_score?: number | null; gad7_score?: number | null; burnout_score?: number | null; wellbeing_score?: number | null; psychosocial_risk_score?: number | null; voice_signal_score?: number | null; composite_risk_score: number; risk_level: string; requires_human_review?: boolean; confidence?: number; reasons?: string[]; scored_at?: string };
-        Update: { id?: string; session_id?: string; phq9_score?: number | null; gad7_score?: number | null; burnout_score?: number | null; wellbeing_score?: number | null; psychosocial_risk_score?: number | null; voice_signal_score?: number | null; composite_risk_score?: number; risk_level?: string; requires_human_review?: boolean; confidence?: number; reasons?: string[]; scored_at?: string };
+        Row: { id: string; session_id: string; phq9_score: number | null; gad7_score: number | null; burnout_score: number | null; wellbeing_score: number | null; psychosocial_risk_score: number | null; voice_signal_score: number | null; voice_path: string | null; composite_risk_score: number; risk_level: string; requires_human_review: boolean; confidence: number; reasons: string[]; scored_at: string };
+        Insert: { id?: string; session_id: string; phq9_score?: number | null; gad7_score?: number | null; burnout_score?: number | null; wellbeing_score?: number | null; psychosocial_risk_score?: number | null; voice_signal_score?: number | null; voice_path?: string | null; composite_risk_score: number; risk_level: string; requires_human_review?: boolean; confidence?: number; reasons?: string[]; scored_at?: string };
+        Update: { id?: string; session_id?: string; phq9_score?: number | null; gad7_score?: number | null; burnout_score?: number | null; wellbeing_score?: number | null; psychosocial_risk_score?: number | null; voice_signal_score?: number | null; voice_path?: string | null; composite_risk_score?: number; risk_level?: string; requires_human_review?: boolean; confidence?: number; reasons?: string[]; scored_at?: string };
       };
       risk_alerts: {
         Row: { id: string; tenant_id: string; employee_id: string | null; session_id: string | null; alert_type: string; severity: string; requires_human_review: boolean; status: string; created_at: string };
         Insert: { id?: string; tenant_id: string; employee_id?: string | null; session_id?: string | null; alert_type: string; severity: string; requires_human_review?: boolean; status?: string; created_at?: string };
         Update: { id?: string; tenant_id?: string; employee_id?: string | null; session_id?: string | null; alert_type?: string; severity?: string; requires_human_review?: boolean; status?: string; created_at?: string };
+      };
+      corrective_actions: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          assessment_score_id: string | null;
+          title: string;
+          description: string | null;
+          status: string | null;
+          priority: string | null;
+          assigned_to: string | null;
+          responsible_name: string | null;
+          hazard_factor: string | null;
+          process_activity: string | null;
+          evidence_url: string | null;
+          evidence_notes: string | null;
+          effectiveness_score: number | null;
+          reassessment_date: string | null;
+          reassessment_status: string | null;
+          due_date: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          assessment_score_id?: string | null;
+          title: string;
+          description?: string | null;
+          status?: string | null;
+          priority?: string | null;
+          assigned_to?: string | null;
+          responsible_name?: string | null;
+          hazard_factor?: string | null;
+          process_activity?: string | null;
+          evidence_url?: string | null;
+          evidence_notes?: string | null;
+          effectiveness_score?: number | null;
+          reassessment_date?: string | null;
+          reassessment_status?: string | null;
+          due_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          assessment_score_id?: string | null;
+          title?: string;
+          description?: string | null;
+          status?: string | null;
+          priority?: string | null;
+          assigned_to?: string | null;
+          responsible_name?: string | null;
+          hazard_factor?: string | null;
+          process_activity?: string | null;
+          evidence_url?: string | null;
+          evidence_notes?: string | null;
+          effectiveness_score?: number | null;
+          reassessment_date?: string | null;
+          reassessment_status?: string | null;
+          due_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      consent_logs: {
+        Row: { id: string; employee_id: string | null; tenant_id: string | null; consent_type: string; is_granted: boolean; terms_version: string | null; ip_address: string | null; user_agent: string | null; created_at: string };
+        Insert: { id?: string; employee_id?: string | null; tenant_id?: string | null; consent_type: string; is_granted?: boolean; terms_version?: string | null; ip_address?: string | null; user_agent?: string | null; created_at?: string };
+        Update: { id?: string; employee_id?: string | null; tenant_id?: string | null; consent_type?: string; is_granted?: boolean; terms_version?: string | null; ip_address?: string | null; user_agent?: string | null; created_at?: string };
       };
       care_referrals: {
         Row: { id: string; tenant_id: string; employee_id: string; session_id: string | null; referral_type: string; urgency: string; status: string; created_at: string };

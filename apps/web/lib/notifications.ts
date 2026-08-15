@@ -2,7 +2,7 @@
 
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 interface CriticalAlertParams {
   employeeId: string;
@@ -23,7 +23,7 @@ export async function sendCriticalAlert(params: CriticalAlertParams) {
 
   // 1. Enviar Email via Resend
   try {
-    if (process.env.RESEND_API_KEY) {
+    if (resend) {
       await resend.emails.send({
         from: "Alerta AEGIS <alerts@aegis-hub.pt>",
         to: recipient,

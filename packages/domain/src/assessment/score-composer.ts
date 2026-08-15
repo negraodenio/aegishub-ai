@@ -38,11 +38,13 @@ export function composeRiskScore(inputRaw: unknown): Result<CompositeScoreResult
   const phq9Normalized = ((input.phq9Score ?? 0) / 27) * 100;
   const gad7Normalized = ((input.gad7Score ?? 0) / 21) * 100;
 
+  const effectivePsychosocialScore = input.psychosocialRiskScore ?? input.workerVoiceScore;
+
   const signals = [
     { value: phq9Normalized, weight: weights.phq9, present: input.phq9Score != null },
     { value: gad7Normalized, weight: weights.gad7, present: input.gad7Score != null },
     { value: input.burnoutScore ?? 0, weight: weights.burnout, present: input.burnoutScore != null },
-    { value: input.psychosocialRiskScore ?? 0, weight: weights.psychosocial, present: input.psychosocialRiskScore != null },
+    { value: effectivePsychosocialScore ?? 0, weight: weights.psychosocial, present: effectivePsychosocialScore != null },
     { value: input.voiceSignalScore ?? 0, weight: weights.voice, present: input.voiceSignalScore != null },
     { value: 100 - (input.wellbeingScore ?? 50), weight: weights.wellbeingProtection, present: true } // Inverse wellbeing as risk
   ];
@@ -63,7 +65,7 @@ export function composeRiskScore(inputRaw: unknown): Result<CompositeScoreResult
   if ((input.phq9Score ?? 0) >= 15) reasons.push("high_phq9_score");
   if ((input.gad7Score ?? 0) >= 15) reasons.push("high_gad7_score");
   if ((input.burnoutScore ?? 0) >= 70) reasons.push("high_burnout_score");
-  if ((input.psychosocialRiskScore ?? 0) >= 70) reasons.push("high_work_risk_factors");
+  if ((effectivePsychosocialScore ?? 0) >= 70) reasons.push("high_work_risk_factors");
   if ((input.voiceSignalScore ?? 0) >= 70) reasons.push("voice_signal_change_detected");
 
   const confidence =
@@ -72,7 +74,7 @@ export function composeRiskScore(inputRaw: unknown): Result<CompositeScoreResult
       input.gad7Score,
       input.burnoutScore,
       input.wellbeingScore,
-      input.psychosocialRiskScore,
+      effectivePsychosocialScore,
       input.voiceSignalScore
     ].filter((v) => v != null).length / 6;
 

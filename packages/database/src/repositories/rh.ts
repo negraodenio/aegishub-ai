@@ -82,15 +82,22 @@ export async function getRHHeatmap(client: SupabaseClient<Database>, tenantId: s
 }
 
 export async function getActionQueue(client: SupabaseClient<Database>, tenantId: string) {
-  const { data: alerts } = await client
-    .from("risk_alerts")
-    .select("*, employees(id, full_name, business_unit), assessment_scores!risk_alerts_session_id_fkey(voice_path)")
-    .eq("tenant_id", tenantId)
-    .in("status", ["open", "in_review"])
-    .order("created_at", { ascending: false })
-    .limit(10);
+  const [alertsRes, actionsRes] = await Promise.all([
+    (client
+      .from("risk_alerts") as any)
+      .select("*, employees(id, full_name, business_unit)")
+      .eq("tenant_id", tenantId)
+      .in("status", ["open", "in_review"])
+      .order("created_at", { ascending: false })
+      .limit(10),
+    (client.from("corrective_actions") as any)
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(10)
+  ]);
 
-  return (alerts ?? []).map((alert: any) => {
+  const alertItems = (alertsRes.data ?? []).map((alert: any) => {
     return {
       id: alert.id,
       type: alert.alert_type,
@@ -101,7 +108,28 @@ export async function getActionQueue(client: SupabaseClient<Database>, tenantId:
       businessUnit: alert.employees?.business_unit || "Geral",
       dueDate: new Date(new Date(alert.created_at).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       voicePath: alert.assessment_scores?.voice_path || undefined,
-      status: alert.status
+      status: alert.status,
+      evidenceUrl: undefined,
+      reassessmentStatus: undefined
     };
   });
+
+  const correctiveItems = (actionsRes.data ?? []).map((action: any) => {
+    return {
+      id: action.id,
+      type: "sst_preventive_measure",
+      priority: (action.priority?.toLowerCase() || "medium") as "critical" | "high" | "moderate" | "low",
+      title: action.title,
+      employeeId: action.assigned_to || "",
+      ownerName: action.responsible_name || "Técnico de SST",
+      businessUnit: action.process_activity || "Geral",
+      dueDate: action.due_date || new Date(new Date(action.created_at).getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      voicePath: undefined,
+      status: action.status?.toLowerCase() || "open",
+      evidenceUrl: action.evidence_url,
+      reassessmentStatus: action.reassessment_status
+    };
+  });
+
+  return [...alertItems, ...correctiveItems].slice(0, 15);
 }

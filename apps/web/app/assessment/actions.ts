@@ -72,9 +72,9 @@ export async function getAssessmentContext(token: string) {
   const normalizedToken = token?.toUpperCase().trim();
   if (normalizedToken === "DEMO-PARTNER") {
     return {
-      employeeName: "Parceiro de Inovação",
-      companyName: "NEXUS SafeHorizon",
-      verticalPack: "high-tech",
+      employeeName: "Colaborador (Sessão de Demonstração)",
+      companyName: "AegisHub Enterprise Demo",
+      verticalPack: "generic",
       tenantId: "demo-tenant-uuid"
     };
   }
