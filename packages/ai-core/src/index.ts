@@ -7,3 +7,4 @@ export * from "./observability/correlation";
 export * from "./observability/errors";
 export * from "./observability/logger";
 export * from "./observability/metrics";
+export * from "./commercial/catalog";
