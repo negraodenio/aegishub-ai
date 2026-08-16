@@ -171,6 +171,7 @@ export type Database = {
         Row: {
           id: string;
           tenant_id: string;
+          campaign_id?: string | null;
           assessment_score_id: string | null;
           title: string;
           description: string | null;
@@ -185,6 +186,11 @@ export type Database = {
           effectiveness_score: number | null;
           reassessment_date: string | null;
           reassessment_status: string | null;
+          reassessment_campaign_id?: string | null;
+          effectiveness_rating?: string | null;
+          effectiveness_rationale?: string | null;
+          effectiveness_evaluated_by?: string | null;
+          effectiveness_evaluated_at?: string | null;
           due_date: string | null;
           created_at: string;
           updated_at: string;
@@ -192,6 +198,7 @@ export type Database = {
         Insert: {
           id?: string;
           tenant_id: string;
+          campaign_id?: string | null;
           assessment_score_id?: string | null;
           title: string;
           description?: string | null;
@@ -206,6 +213,11 @@ export type Database = {
           effectiveness_score?: number | null;
           reassessment_date?: string | null;
           reassessment_status?: string | null;
+          reassessment_campaign_id?: string | null;
+          effectiveness_rating?: string | null;
+          effectiveness_rationale?: string | null;
+          effectiveness_evaluated_by?: string | null;
+          effectiveness_evaluated_at?: string | null;
           due_date?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -213,6 +225,7 @@ export type Database = {
         Update: {
           id?: string;
           tenant_id?: string;
+          campaign_id?: string | null;
           assessment_score_id?: string | null;
           title?: string;
           description?: string | null;
@@ -227,11 +240,93 @@ export type Database = {
           effectiveness_score?: number | null;
           reassessment_date?: string | null;
           reassessment_status?: string | null;
+          reassessment_campaign_id?: string | null;
+          effectiveness_rating?: string | null;
+          effectiveness_rationale?: string | null;
+          effectiveness_evaluated_by?: string | null;
+          effectiveness_evaluated_at?: string | null;
           due_date?: string | null;
           created_at?: string;
           updated_at?: string;
         };
       };
+      action_evidence: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          action_id: string;
+          campaign_id: string | null;
+          evidence_type: string;
+          title: string;
+          description: string | null;
+          file_url: string | null;
+          file_hash: string | null;
+          uploaded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          action_id: string;
+          campaign_id?: string | null;
+          evidence_type: string;
+          title: string;
+          description?: string | null;
+          file_url?: string | null;
+          file_hash?: string | null;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          action_id?: string;
+          campaign_id?: string | null;
+          evidence_type?: string;
+          title?: string;
+          description?: string | null;
+          file_url?: string | null;
+          file_hash?: string | null;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+      };
+      action_audit_logs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          action_id: string;
+          actor_id: string | null;
+          event_type: string;
+          previous_state: any | null;
+          new_state: any | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          action_id: string;
+          actor_id?: string | null;
+          event_type: string;
+          previous_state?: any | null;
+          new_state?: any | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          action_id?: string;
+          actor_id?: string | null;
+          event_type?: string;
+          previous_state?: any | null;
+          new_state?: any | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+      };
+
       consent_logs: {
         Row: { id: string; employee_id: string | null; tenant_id: string | null; consent_type: string; is_granted: boolean; terms_version: string | null; ip_address: string | null; user_agent: string | null; created_at: string };
         Insert: { id?: string; employee_id?: string | null; tenant_id?: string | null; consent_type: string; is_granted?: boolean; terms_version?: string | null; ip_address?: string | null; user_agent?: string | null; created_at?: string };
