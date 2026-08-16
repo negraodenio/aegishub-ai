@@ -2,8 +2,12 @@ import { type NextRequest } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  const correlationId = request.headers.get("x-correlation-id") || `corr_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const response = await updateSession(request);
+  response.headers.set("X-Correlation-ID", correlationId);
+  return response;
 }
+
 
 export const config = {
   matcher: [
