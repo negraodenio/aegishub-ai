@@ -9,6 +9,7 @@ export * from "./repositories/ai-governance";
 export * from "./repositories/intervention";
 export * from "./repositories/compliance-report";
 export * from "./repositories/report-service";
+export * from "./repositories/cognitive";
 
 
 

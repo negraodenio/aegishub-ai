@@ -10,9 +10,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@mindops/ai-core": "workspace:*",
     "@mindops/domain": "workspace:*",
     "@supabase/supabase-js": "^2.48.0"
   },
+
   "devDependencies": {
     "typescript": "^5.7.0"
   }
