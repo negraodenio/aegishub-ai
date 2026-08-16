@@ -327,6 +327,88 @@ export type Database = {
         };
       };
 
+      compliance_reports: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          campaign_id: string | null;
+          report_type: string;
+          jurisdiction: string;
+          version: number;
+          title: string;
+          period_start: string | null;
+          period_end: string | null;
+          content_hash: string;
+          report_data: any;
+          generated_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          campaign_id?: string | null;
+          report_type: string;
+          jurisdiction: string;
+          version?: number;
+          title: string;
+          period_start?: string | null;
+          period_end?: string | null;
+          content_hash: string;
+          report_data: any;
+          generated_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          campaign_id?: string | null;
+          report_type?: string;
+          jurisdiction?: string;
+          version?: number;
+          title?: string;
+          period_start?: string | null;
+          period_end?: string | null;
+          content_hash?: string;
+          report_data?: any;
+          generated_by?: string | null;
+          created_at?: string;
+        };
+      };
+
+      report_audit_logs: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          report_id: string;
+          campaign_id: string | null;
+          actor_id: string | null;
+          action: string;
+          details: any | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          report_id: string;
+          campaign_id?: string | null;
+          actor_id?: string | null;
+          action: string;
+          details?: any | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          report_id?: string;
+          campaign_id?: string | null;
+          actor_id?: string | null;
+          action?: string;
+          details?: any | null;
+          created_at?: string;
+        };
+      };
+
+
       consent_logs: {
         Row: { id: string; employee_id: string | null; tenant_id: string | null; consent_type: string; is_granted: boolean; terms_version: string | null; ip_address: string | null; user_agent: string | null; created_at: string };
         Insert: { id?: string; employee_id?: string | null; tenant_id?: string | null; consent_type: string; is_granted?: boolean; terms_version?: string | null; ip_address?: string | null; user_agent?: string | null; created_at?: string };

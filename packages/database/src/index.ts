@@ -7,7 +7,9 @@ export * from "./repositories/membership";
 export * from "./repositories/campaign";
 export * from "./repositories/ai-governance";
 export * from "./repositories/intervention";
+export * from "./repositories/compliance-report";
 export * from "./repositories/report-service";
+
 
 
 

@@ -9,10 +9,10 @@ import { EmptyCampaignState } from "../../../features/rh-dashboard/components/Em
 import { EnterpriseKPIGrid } from "../../../features/rh-dashboard/components/EnterpriseKPIGrid";
 import { AnonymizedHeatmap } from "../../../features/rh-dashboard/components/AnonymizedHeatmap";
 import { OrganizationalActionTable } from "../../../features/rh-dashboard/components/OrganizationalActionTable";
-import { ACTDownloadButton } from "../../../features/rh-dashboard/components/ACTDownloadButton";
-import { NR1DownloadButton } from "../../../features/rh-dashboard/components/NR1DownloadButton";
+import { RegulatoryReportCenter } from "../../../features/rh-dashboard/components/RegulatoryReportCenter";
 import Link from "next/link";
 import { BrainCircuit, AlertTriangle, ShieldCheck } from "lucide-react";
+
 
 export default async function RHDashboardPage({
   searchParams
@@ -94,38 +94,17 @@ export default async function RHDashboardPage({
             />
 
             {/* 7. Exportação Regulatória & Links Oficiais */}
-            <footer className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/10 text-xs">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-white">Relatórios & Evidências Estatutárias</h4>
-                  <p className="text-[11px] text-neutral-400">
-                    Exportação de dossiê em conformidade com {countryCode === "PT" ? "ACT (Lei 102/2009)" : "MTE (NR-1 / PGR)"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {countryCode === "BR" ? (
-                  <NR1DownloadButton tenantName={tenantName} />
-                ) : (
-                  <ACTDownloadButton tenantName={tenantName} />
-                )}
-                <Link
-                  href={"/rh/intelligence" as any}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 font-semibold transition-all border border-white/10"
-                >
-                  <BrainCircuit className="h-4 w-4 text-cyan-400" />
-                  <span>AI Governance Log</span>
-                </Link>
-              </div>
-            </footer>
+            <RegulatoryReportCenter
+              tenantName={tenantName}
+              countryCode={countryCode}
+              campaigns={campaigns.map((c) => ({ id: c.id, title: c.title, code: c.code }))}
+              activeCampaignId={activeCampaign?.id}
+            />
           </>
         )}
       </main>
     );
+
   } catch (error: any) {
     console.error("[RH_DASHBOARD_ERROR]", error);
     return (
