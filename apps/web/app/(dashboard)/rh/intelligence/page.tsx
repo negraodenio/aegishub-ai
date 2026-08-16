@@ -1,76 +1,94 @@
-"use client";
+export const dynamic = "force-dynamic";
 
-import { DriftMatrixCard } from "../../../../features/rh-dashboard/components/DriftMatrixCard";
-import { PatchFeedList } from "../../../../features/rh-dashboard/components/PatchFeedList";
-import { HumanValidationQueue } from "../../../../features/rh-dashboard/components/HumanValidationQueue";
+import { createClient } from "@/utils/supabase/server";
+import { resolveTenantContext } from "@/lib/tenant-context";
+import {
+  getAIGovernanceMetrics,
+  getPendingAIDecisions,
+  getAIAuditLogs
+} from "@mindops/database";
+import { AIGovernanceHeader } from "@/features/ai-governance/AIGovernanceHeader";
+import { AIGovernanceKPIGrid } from "@/features/ai-governance/AIGovernanceKPIGrid";
+import { HumanOversightQueue } from "@/features/ai-governance/HumanOversightQueue";
+import { ModelCalibrationCard } from "@/features/ai-governance/ModelCalibrationCard";
+import { DecisionExplainabilityCard } from "@/features/ai-governance/DecisionExplainabilityCard";
+import { AIAuditTrailTable } from "@/features/ai-governance/AIAuditTrailTable";
+import Link from "next/link";
 import { BrainCircuit } from "lucide-react";
-import { motion } from "framer-motion";
 
-export default function IntelligenceHubPage() {
-  return (
-    <main className="space-y-12 p-8 max-w-7xl mx-auto animate-in fade-in duration-700 bg-[#020202] text-white min-h-screen">
-      <header className="flex items-center justify-between border-b border-white/10 pb-8">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
-                <BrainCircuit className="h-6 w-6 text-black" />
-             </div>
-             <h1 className="text-2xl font-black tracking-tighter italic uppercase text-white">
-                Intelligence <span className="font-light not-italic text-neutral-500 ml-1">Center M2.7</span>
-             </h1>
-          </div>
-          <p className="text-sm text-neutral-500 max-w-lg">
-            Monitorização da Camada Autónoma de Inferência e Drift Analysis da Rede Neuronal MindOps.
-          </p>
+export default async function IntelligenceHubPage({
+  searchParams
+}: {
+  searchParams: Promise<{ tenantId?: string; country?: string }>;
+}) {
+  try {
+    const { tenantId: requestedTenantId, country: requestedCountry } = await searchParams;
+    const client = await createClient();
+
+    // 🛡️ P0/P2 SECURITY: Resolução estrita de tenant context e RBAC para Governança de IA
+    const tenantContext = await resolveTenantContext({
+      requiredRoles: ["admin", "sst_professional", "health_professional", "manager", "rh"],
+      requestedTenantId: requestedTenantId || null,
+      redirectToLoginOnFail: true
+    });
+
+    const targetTenantId = tenantContext.tenantId;
+    const tenantName = tenantContext.tenantName;
+    const countryCode = (requestedCountry || tenantContext.countryCode) as "PT" | "BR";
+
+    // 1. Obter métricas reais de governança de IA para o tenant
+    const metrics = await getAIGovernanceMetrics(client as any, targetTenantId);
+
+    // 2. Obter decisões pendentes de validação humana (Human-in-the-Loop)
+    const pendingDecisions = await getPendingAIDecisions(client as any, targetTenantId);
+
+    // 3. Obter logs do AI Audit Trail
+    const auditLogs = await getAIAuditLogs(client as any, targetTenantId, 30);
+
+    return (
+      <main className="space-y-8 p-6 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500 font-sans min-h-screen text-white bg-[#020202]">
+        {/* 1. Header do Centro de Governança de IA */}
+        <AIGovernanceHeader
+          tenantName={tenantName}
+          countryCode={countryCode}
+          userRole={tenantContext.role}
+          monitoredModels={metrics.monitoredModels}
+        />
+
+        {/* 2. Grid de KPIs de Governança de IA */}
+        <AIGovernanceKPIGrid metrics={metrics} />
+
+        {/* 3. Supervisão Humana Obrigatória (Human-in-the-Loop) */}
+        <HumanOversightQueue decisions={pendingDecisions} />
+
+        {/* 4. Calibração de Modelos e Explicabilidade Estruturada */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ModelCalibrationCard metrics={metrics} />
+          <DecisionExplainabilityCard />
         </div>
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-6 py-2.5 text-xs font-bold text-emerald-400 uppercase tracking-widest">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            Core M2.7 Online
-          </span>
+
+        {/* 5. Rastro Imutável de Auditoria (AI Audit Trail) */}
+        <AIAuditTrailTable logs={auditLogs} />
+      </main>
+    );
+  } catch (error: any) {
+    console.error("[AI_GOVERNANCE_PAGE_ERROR]", error);
+    return (
+      <div className="min-h-screen bg-[#020202] text-white flex flex-col items-center justify-center p-10 font-sans">
+        <div className="h-20 w-20 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-6">
+          <BrainCircuit className="h-10 w-10 text-rose-500" />
         </div>
-      </header>
-
-      <section className="grid gap-8 lg:grid-cols-2">
-           <DriftMatrixCard />
-           <PatchFeedList />
-      </section>
-
-      <section className="rounded-[40px] border border-white/5 bg-white/[0.01] overflow-hidden">
-        <HumanValidationQueue />
-      </section>
-
-      {/* Memory Layer RAG Snippet Demo */}
-      <section className="rounded-[40px] border border-white/5 bg-white/[0.02] p-10 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 h-40 w-40 bg-emerald-500/5 blur-[80px] -mr-20 -mt-20 group-hover:bg-emerald-500/10 transition-all" />
-        <h3 className="text-lg font-bold uppercase tracking-widest text-emerald-400 mb-6 flex items-center gap-3">
-           <div className="h-2 w-6 bg-emerald-500 rounded-full" />
-           Organizational Memory Layer (RAG)
-        </h3>
-        <p className="text-sm text-neutral-500 mb-8 max-w-3xl leading-relaxed">
-          O sistema recalcula a prontidão corporativa pesquisando no repositório clínico da empresa o desfecho das últimas <span className="text-white font-bold">400 intervenções T1</span> em tempo real.
+        <h2 className="text-xl font-bold tracking-tight text-white">Acesso Não Autorizado ao Centro de Governança</h2>
+        <p className="text-neutral-400 mt-2 text-xs max-w-md text-center">
+          {error.message || "O Centro de Governança de IA requer permissões específicas de auditoria, SST ou administração de organização."}
         </p>
-        <div className="bg-[#050505] border border-white/10 rounded-3xl p-8 font-mono text-[10px] text-emerald-500/80 overflow-hidden shadow-2xl relative">
-          <div className="absolute top-4 right-4 text-[8px] text-neutral-700 font-bold uppercase tracking-widest">Live Tensor Stream</div>
-          <div className="opacity-40 mb-2">// Querying VDB Tensor Space for "Burnout Risk IT Dept"</div>
-          <div className="flex gap-2 mb-1">
-             <span className="text-neutral-700">01011001</span>
-             <span>&gt; FOUND 12 MATCHING INCIDENTS [SIMILARITY 0.9412]</span>
-          </div>
-          <div className="flex gap-2 mb-1">
-             <span className="text-neutral-700">11001010</span>
-             <span>&gt; EXTRACTING PREVIOUS HR INTERVENTION IMPACT...</span>
-          </div>
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ repeat: Infinity, duration: 2, repeatType: "reverse" }}
-            className="text-white font-bold mt-4 border-l-2 border-emerald-500 pl-4 py-2 bg-emerald-500/5 rounded-r-lg"
-          >
-             &gt; STRATEGY GENERATED: APPLYING MANDATORY 4-DAY ROTATION TO AVOID +18% RELAPSE DETECTED IN SIMILAR CLUSTERS.
-          </motion.div>
-        </div>
-      </section>
-    </main>
-  );
+        <Link
+          href="/rh"
+          className="mt-8 px-5 py-2.5 rounded-xl bg-emerald-500 text-black text-xs font-bold uppercase tracking-wider hover:bg-emerald-400 transition-all"
+        >
+          Voltar ao Dashboard RH
+        </Link>
+      </div>
+    );
+  }
 }

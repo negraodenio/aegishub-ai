@@ -5,7 +5,9 @@ export * from "./repositories/assessment";
 export * from "./repositories/clinical";
 export * from "./repositories/membership";
 export * from "./repositories/campaign";
+export * from "./repositories/ai-governance";
 export * from "./repositories/report-service";
+
 
 
 export * from "./services/assessment-service";
