@@ -13,6 +13,8 @@ export * from "./repositories/cognitive";
 export * from "./repositories/privacy";
 export * from "./repositories/onboarding";
 export * from "./repositories/commercial";
+export * from "./seed/demo-seeder";
+
 
 
 
