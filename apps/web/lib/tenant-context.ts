@@ -106,14 +106,19 @@ export async function resolveTenantContext(
     }
   }
 
+  const activeTenantId = resolvedMemb.tenant_id || resolvedMemb.tenantId || "";
+  const activeTenantName = resolvedMemb.tenant_name || resolvedMemb.tenantName || "Organização";
+  const activeCountryCode = (resolvedMemb.country_code === "BR" || resolvedMemb.countryCode === "BR") ? "BR" : "PT";
+
   return {
     user,
-    tenantId: resolvedMemb.tenantId,
-    tenantName: resolvedMemb.tenantName ?? "Organização",
-    countryCode: (resolvedMemb.countryCode === "BR" ? "BR" : "PT"),
+    tenantId: activeTenantId,
+    tenantName: activeTenantName,
+    countryCode: activeCountryCode,
     role: resolvedMemb.role,
     membership: resolvedMemb,
     availableMemberships: memberships
   };
 }
+
 

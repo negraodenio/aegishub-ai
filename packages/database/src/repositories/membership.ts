@@ -5,13 +5,22 @@ export type UserRole = Database["public"]["Enums"]["user_role"];
 
 export interface TenantMembership {
   id: string;
-  userId: string;
-  tenantId: string;
+  user_id?: string;
+  tenant_id?: string;
   role: UserRole;
   status: "active" | "invited" | "suspended";
+  tenant_name?: string;
+  tenant_slug?: string;
+  country_code?: "PT" | "BR" | string;
+  created_at?: string;
+  // Aliases para compatibilidade camelCase
+  userId?: string;
+  tenantId?: string;
   tenantName?: string;
-  countryCode?: string;
+  countryCode?: "PT" | "BR" | string;
 }
+
+
 
 /**
  * Retorna todas as memberships ativas de um utilizador autenticado.
@@ -25,19 +34,24 @@ export async function getUserMemberships(
     // 1. Tentar buscar em tenant_memberships
     const { data: memberships, error } = await (client
       .from("tenant_memberships" as any) as any)
-      .select("id, user_id, tenant_id, role, status, tenants(name, country_code)")
+      .select("id, user_id, tenant_id, role, status, created_at, tenants(id, name, slug, country_code)")
       .eq("user_id", userId)
       .eq("status", "active");
 
     if (!error && memberships && memberships.length > 0) {
       return memberships.map((m: any) => ({
         id: m.id,
-        userId: m.user_id,
-        tenantId: m.tenant_id,
+        user_id: m.user_id,
+        tenant_id: m.tenant_id,
         role: m.role as UserRole,
         status: m.status,
-        tenantName: m.tenants?.name ?? "Organização",
-        countryCode: m.tenants?.country_code ?? "PT"
+        tenant_name: m.tenants?.name ?? "Organização",
+        tenant_slug: m.tenants?.slug ?? "org",
+        country_code: (m.tenants?.country_code === "BR" ? "BR" : "PT") as "PT" | "BR",
+        created_at: m.created_at,
+        userId: m.user_id,
+        tenantId: m.tenant_id,
+        tenantName: m.tenants?.name ?? "Organização"
       }));
     }
   } catch {
@@ -45,24 +59,36 @@ export async function getUserMemberships(
   }
 
   // 2. Fallback de compatibilidade para profiles
-  const { data: profile } = await (client
-    .from("profiles") as any)
-    .select("id, tenant_id, role, tenants(name, country_code)")
-    .eq("id", userId)
-    .single();
+  try {
+    const query = (client.from("profiles") as any)
+      .select("id, tenant_id, role, tenants(id, name, slug, country_code)")
+      .eq("id", userId);
 
-  if (profile && (profile as any).tenant_id) {
-    return [{
-      id: `profile-${(profile as any).id}`,
-      userId: (profile as any).id,
-      tenantId: (profile as any).tenant_id,
-      role: (profile as any).role as UserRole,
-      status: "active",
-      tenantName: (profile as any).tenants?.name ?? "Organização",
-      countryCode: (profile as any).tenants?.country_code ?? "PT"
-    }];
+    const { data: profile } = typeof query.maybeSingle === "function"
+      ? await query.maybeSingle()
+      : typeof query.single === "function"
+      ? await query.single()
+      : { data: null };
+
+    if (profile && (profile as any).tenant_id) {
+      const p = profile as any;
+      return [{
+        id: `profile-${p.id}`,
+        user_id: p.id,
+        tenant_id: p.tenant_id,
+        role: p.role as UserRole,
+        status: "active",
+        tenant_name: p.tenants?.name ?? "Organização",
+        tenant_slug: p.tenants?.slug ?? "org",
+        country_code: (p.tenants?.country_code === "BR" ? "BR" : "PT") as "PT" | "BR",
+        userId: p.id,
+        tenantId: p.tenant_id,
+        tenantName: p.tenants?.name ?? "Organização"
+      }];
+    }
+  } catch {
+    // Retorna vazio caso não haja perfil
   }
 
   return [];
 }
-
