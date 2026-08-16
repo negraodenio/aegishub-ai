@@ -8,3 +8,7 @@ export * from "./observability/errors";
 export * from "./observability/logger";
 export * from "./observability/metrics";
 export * from "./commercial/catalog";
+export * from "./sensitive-data";
+export * from "./llm-guard-session";
+export * from "./cognitive-tip";
+export * from "./two-phase-audit";
