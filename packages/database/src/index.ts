@@ -11,6 +11,7 @@ export * from "./repositories/compliance-report";
 export * from "./repositories/report-service";
 export * from "./repositories/cognitive";
 export * from "./repositories/privacy";
+export * from "./repositories/onboarding";
 
 
 
