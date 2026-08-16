@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
 /**
  * ⏱️ POST /api/cognitive/focus/end
  * Encerra uma sessão de foco cognitivo
- * - Valida ownership via auth.uid()
+ * - Valida ownership via auth.uid() = user_id
+ * - Deriva tenantId exclusivamente a partir da sessão persistida (SEC-03)
  */
 export async function POST(req: NextRequest) {
   const correlationId = resolveCorrelationId(req.headers.get(CORRELATION_HEADER));
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { sessionId, durationActualSeconds, completed, tenantId } = body;
+    const { sessionId, durationActualSeconds, completed } = body;
 
     if (!sessionId) {
       return NextResponse.json(
@@ -50,11 +51,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Telemetria funcional
-    if (tenantId) {
+    // Telemetria funcional usando o tenantId persistido autoritativo da própria sessão
+    const persistedTenantId = (session as any).tenant_id || (session as any).tenantId;
+    if (persistedTenantId) {
       await logCognitiveSupportEvent(client as any, {
         userId: user.id,
-        tenantId,
+        tenantId: persistedTenantId,
         eventType: completed ? "focus_completed" : "focus_abandoned",
         context: {
           sessionId,

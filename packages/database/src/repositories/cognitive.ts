@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "../generated.types";
+import { getUserMemberships } from "./membership";
 
 
 export interface TenantCognitiveSettings {
@@ -267,16 +268,36 @@ export async function getLlmUsageToday(
 }
 
 /**
- * Registra consumo de LLM via RPC segura
+ * Registra consumo de LLM via RPC segura com suporte a reconciliação delta (SEC-05)
  */
 export async function recordLlmUsage(
   client: SupabaseClient<Database>,
   userId: string,
   tenantId: string,
   tokens: number,
-  costUsd: number
+  costUsd: number,
+  estimatedCostUsd?: number
 ): Promise<{ success: boolean; dailyTokensUsed: number; dailyCostUsd: number }> {
-  const { data, error } = await (client.rpc as any)("record_llm_usage", {
+  // Se estimatedCostUsd foi informado, usa a função atômica de reconciliação com ajuste delta
+  if (estimatedCostUsd !== undefined && estimatedCostUsd >= 0) {
+    const { data: recData, error: recError } = await (client as any).rpc("reconcile_llm_usage", {
+      p_user_id: userId,
+      p_tenant_id: tenantId,
+      p_tokens: tokens,
+      p_actual_cost: costUsd,
+      p_estimated_cost: estimatedCostUsd
+    });
+
+    if (!recError && recData) {
+      return {
+        success: true,
+        dailyTokensUsed: recData.daily_tokens_used,
+        dailyCostUsd: Number(recData.daily_cost_usd)
+      };
+    }
+  }
+
+  const { data, error } = await (client as any).rpc("record_llm_usage", {
     p_user_id: userId,
     p_tenant_id: tenantId,
     p_tokens: tokens,
@@ -332,3 +353,60 @@ export async function getCognitiveBenefitAggregates(
       "Em estrita conformidade com o RGPD (Art. 9º) e LGPD (Art. 11º), dados de utilização e conteúdos individuais do programa de Suporte Cognitivo são confidenciais e inacessíveis ao empregador."
   };
 }
+
+/**
+ * ??? Security Remediation: Authoritative Server-Side Tenant Context Resolution
+ * Rejects client-supplied tenantId if it does not match active memberships.
+ * If omitted, falls back to the first active membership.
+ */
+export async function resolveAuthorizedTenantContext(
+  client: SupabaseClient<Database>,
+  userId: string,
+  requestedTenantId?: string
+): Promise<{ tenantId: string; error?: string }> {
+  const memberships = await getUserMemberships(client, userId);
+  if (!memberships || memberships.length === 0) {
+    return { tenantId: "", error: "USER_NO_ACTIVE_MEMBERSHIPS" };
+  }
+
+  if (requestedTenantId) {
+    const validMembership = memberships.find(m => m.tenant_id === requestedTenantId || m.tenantId === requestedTenantId);
+    if (!validMembership) {
+      return { tenantId: "", error: "UNAUTHORIZED_TENANT_CONTEXT" };
+    }
+    return { tenantId: validMembership.tenant_id || validMembership.tenantId! };
+  }
+
+  if (memberships.length === 1) {
+    const first = memberships[0];
+    return { tenantId: (first?.tenant_id || first?.tenantId) as string };
+  }
+
+  return { tenantId: "", error: "AMBIGUOUS_TENANT_CONTEXT_REQUIRES_EXPLICIT_SELECTION" };
+}
+
+/**
+ * ??? Security Remediation: Atomic LLM Lease
+ * Calls the DB RPC to reserve quota atomically.
+ */
+export async function acquireLlmLease(
+  client: SupabaseClient<Database>,
+  userId: string,
+  tenantId: string,
+  estimatedCost: number,
+  maxDailyCost: number
+): Promise<boolean> {
+  const { data, error } = await (client as any).rpc("acquire_llm_lease", {
+    p_user_id: userId,
+    p_tenant_id: tenantId,
+    p_estimated_cost: estimatedCost,
+    p_max_daily_cost: maxDailyCost
+  });
+  
+  if (error) {
+    console.error("[acquireLlmLease] RPC error:", error);
+    return false;
+  }
+  return !!data;
+}
+

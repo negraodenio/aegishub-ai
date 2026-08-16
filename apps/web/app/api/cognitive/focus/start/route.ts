@@ -4,6 +4,8 @@ import {
   startCognitiveFocusSession,
   getCognitiveUserProfile,
   checkFeatureEntitlement
+,  resolveAuthorizedTenantContext,
+  acquireLlmLease
 } from "@mindops/database";
 import { resolveCorrelationId, CORRELATION_HEADER } from "@mindops/ai-core";
 
@@ -29,9 +31,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { tenantId, goal, durationPresetSeconds, energyLevelBefore } = body;
+    const { tenantId: requestedTenantId, goal, durationPresetSeconds, energyLevelBefore } = body;
 
-    if (!tenantId) {
+    const authTenantContext = await resolveAuthorizedTenantContext(client as any, user.id, requestedTenantId);
+    if (authTenantContext.error || !authTenantContext.tenantId) {
+      return NextResponse.json(
+        { error: authTenantContext.error || "UNAUTHORIZED_TENANT_CONTEXT" },
+        { status: 403, headers: { [CORRELATION_HEADER]: correlationId } }
+      );
+    }
+    const tenantId = authTenantContext.tenantId;
+
+
+    if (false /* tenant check moved */) {
       return NextResponse.json(
         { error: "BAD_REQUEST: tenantId é obrigatório" },
         { status: 400, headers: { [CORRELATION_HEADER]: correlationId } }
@@ -83,3 +95,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

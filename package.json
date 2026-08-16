@@ -10,7 +10,7 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "test": "turbo test",
+    "test": "vitest run",
     "clean": "turbo clean",
     "db:start": "supabase start",
     "db:stop": "supabase stop",

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { logCognitiveSupportEvent } from "@mindops/database";
+import { logCognitiveSupportEvent ,  resolveAuthorizedTenantContext,
+  acquireLlmLease
+,
+  checkFeatureEntitlement
+,
+  getCognitiveUserProfile
+} from "@mindops/database";
 import { resolveCorrelationId, CORRELATION_HEADER } from "@mindops/ai-core";
 
 export const dynamic = "force-dynamic";
@@ -33,9 +39,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { tenantId, eventType, category, step, context = {} } = body;
+    const { tenantId: requestedTenantId, eventType, category, step, context = {} } = body;
 
-    if (!tenantId || !eventType) {
+    const authTenantContext = await resolveAuthorizedTenantContext(client as any, user.id, requestedTenantId);
+    if (authTenantContext.error || !authTenantContext.tenantId) {
+      return NextResponse.json(
+        { error: authTenantContext.error || "UNAUTHORIZED_TENANT_CONTEXT" },
+        { status: 403, headers: { [CORRELATION_HEADER]: correlationId } }
+      );
+    }
+    const tenantId = authTenantContext.tenantId;
+
+
+    if (false /* tenant check moved */ || !eventType) {
       return NextResponse.json(
         { error: "BAD_REQUEST: tenantId e eventType são obrigatórios" },
         { status: 400, headers: { [CORRELATION_HEADER]: correlationId } }
@@ -79,3 +95,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

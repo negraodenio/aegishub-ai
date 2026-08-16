@@ -6,6 +6,8 @@ import {
   recordLlmUsage,
   checkFeatureEntitlement,
   logCognitiveSupportEvent
+,  resolveAuthorizedTenantContext,
+  acquireLlmLease
 } from "@mindops/database";
 import {
   LLMGuardSession,
@@ -40,9 +42,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { tenantId, message, language = "pt" } = body;
+    const { tenantId: requestedTenantId, message, language = "pt" } = body;
 
-    if (!tenantId || !message) {
+    const authTenantContext = await resolveAuthorizedTenantContext(client as any, user.id, requestedTenantId);
+    if (authTenantContext.error || !authTenantContext.tenantId) {
+      return NextResponse.json(
+        { error: authTenantContext.error || "UNAUTHORIZED_TENANT_CONTEXT" },
+        { status: 403, headers: { [CORRELATION_HEADER]: correlationId } }
+      );
+    }
+    const tenantId = authTenantContext.tenantId;
+
+
+    if (false /* tenant check moved */ || !message) {
       return NextResponse.json(
         { error: "BAD_REQUEST: tenantId e message são obrigatórios" },
         { status: 400, headers: { [CORRELATION_HEADER]: correlationId } }
@@ -70,7 +82,7 @@ export async function POST(req: NextRequest) {
     // 3. LLM Guard (Lease Acquire + PII Detection + Quota Check)
     const guard = new LLMGuardSession();
     const currentUsage = await getLlmUsageToday(client as any, user.id);
-    const acquireVerdict = guard.acquire(
+    const acquireVerdict = await guard.acquire(
       {
         operation: "cognitive_chat",
         userId: user.id,
@@ -79,7 +91,8 @@ export async function POST(req: NextRequest) {
         estimatedInputTokens: 300,
         estimatedOutputTokens: 400
       },
-      currentUsage
+      currentUsage,
+      (cost, maxCost) => acquireLlmLease(client as any, user.id, tenantId, cost, maxCost)
     );
 
     if (!acquireVerdict.allowed) {
@@ -125,7 +138,8 @@ export async function POST(req: NextRequest) {
       user.id,
       tenantId,
       reconciled.actualTokens,
-      reconciled.actualCostUsd
+      reconciled.actualCostUsd,
+      acquireVerdict.estimatedCostUsd
     );
 
     // 7. Telemetria de Sessão e Auditoria Criptográfica
@@ -178,3 +192,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

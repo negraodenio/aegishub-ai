@@ -54,7 +54,11 @@ export class LLMGuardSession {
   /**
    * Adquire um lease para execução de chamada LLM
    */
-  public acquire(params: LLMGuardAcquireParams, currentUsage: { dailyTokensUsed: number; dailyCostUsd: number }): LLMGuardAcquireVerdict {
+  public async acquire(
+    params: LLMGuardAcquireParams,
+    currentUsage: { dailyTokensUsed: number; dailyCostUsd: number },
+    leaseCallback?: (estimatedCostUsd: number, maxCostUsd: number) => Promise<boolean>
+  ): Promise<LLMGuardAcquireVerdict> {
     const leaseId = `lease_${Date.now()}_${crypto.randomUUID().substring(0, 8)}`;
 
     // 1. Validação de tamanho máximo
@@ -79,7 +83,7 @@ export class LLMGuardSession {
       };
     }
 
-    // 3. Verificação de cota diária
+    // 3. Verificação de cota diária local (otimização)
     const quotaResult = this.tracker.checkQuota(currentUsage);
     if (!quotaResult.allowed) {
       return {
@@ -93,6 +97,21 @@ export class LLMGuardSession {
 
     const estTokens = (params.estimatedInputTokens ?? DEFAULT_INPUT_TOKENS_ESTIMATE) + (params.estimatedOutputTokens ?? DEFAULT_OUTPUT_TOKENS_ESTIMATE);
     const estimatedCostUsd = this.tracker.calculateCost(estTokens);
+
+    // 4. Atomic Lease Verification
+    if (leaseCallback) {
+      const maxCostUsd = this.tracker.getMaxDailyCost();
+      const acquired = await leaseCallback(estimatedCostUsd, maxCostUsd);
+      if (!acquired) {
+        return {
+          allowed: false,
+          code: "QUOTA_EXCEEDED",
+          reason: "Falha na aquisição atómica da cota. Limite diário possivelmente atingido.",
+          leaseId,
+          estimatedCostUsd: 0
+        };
+      }
+    }
 
     return {
       allowed: true,

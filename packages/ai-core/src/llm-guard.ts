@@ -95,10 +95,17 @@ export class LlmGuardUsageTracker {
   }
 
   /**
-   * Calcula o custo estimado de uma requisição em USD
+   * Calculates the estimated cost of a request in USD
    */
   public calculateCost(tokens: number): number {
     return Number(((tokens / 1000) * this.config.costPer1kTokensUsd).toFixed(6));
+  }
+
+  /**
+   * Retorna o teto diário de custo configurado
+   */
+  public getMaxDailyCost(): number {
+    return this.config.dailyCostLimitUsd;
   }
 
   /**

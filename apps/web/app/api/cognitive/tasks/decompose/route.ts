@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import {
-  getTenantCognitiveSettings,
   getCognitiveUserProfile,
   getLlmUsageToday,
-  recordLlmUsage
+  recordLlmUsage,
+  checkFeatureEntitlement,
+  logCognitiveSupportEvent,
+  resolveAuthorizedTenantContext,
+  acquireLlmLease
 } from "@mindops/database";
-import { LlmGuardUsageTracker } from "@mindops/ai-core";
+import {
+  LLMGuardSession,
+  LlmGuardUsageTracker,
+  TwoPhaseAuditManager,
+  resolveCorrelationId,
+  CORRELATION_HEADER
+} from "@mindops/ai-core";
 
 export const dynamic = "force-dynamic";
 
@@ -14,61 +23,89 @@ export const dynamic = "force-dynamic";
  * 🛡️ POST /api/cognitive/tasks/decompose
  * Quebra estruturada de tarefas em micro-etapas focadas em produtividade pessoal
  * - Validação rigorosa de autenticação (auth.uid())
- * - Verificação de consentimento e benefício ativo
- * - LLM Guard: Rate limiting, teto de custo ($0.25/dia) e auditoria SHA-256
+ * - Resolução segura de tenant (resolveAuthorizedTenantContext)
+ * - Verificação de entitlement ("cognitive_support") e consentimento informado
+ * - LLM Guard: Rate limiting, teto de custo ($0.25/dia) com lease atômico e delta reconciliation
  * - Guardrail: Zero diagnóstico médico, zero inferência patológica
  */
 export async function POST(req: NextRequest) {
+  const correlationId = resolveCorrelationId(req.headers.get(CORRELATION_HEADER));
+  const startTime = Date.now();
+
   try {
     const client = await createClient();
     const { data: { user }, error: authError } = await client.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: "UNAUTHORIZED: Sessão inválida" }, { status: 401 });
+      return NextResponse.json(
+        { error: "UNAUTHORIZED: Sessão inválida" },
+        { status: 401, headers: { [CORRELATION_HEADER]: correlationId } }
+      );
     }
 
     const body = await req.json();
-    const { taskTitle, taskDescription, estimatedMinutes, tenantId } = body;
+    const { taskTitle, taskDescription, estimatedMinutes, tenantId: requestedTenantId } = body;
 
-    if (!taskTitle || !tenantId) {
+    // 1. Resolução autoritativa de tenant no servidor
+    const authTenantContext = await resolveAuthorizedTenantContext(client as any, user.id, requestedTenantId);
+    if (authTenantContext.error || !authTenantContext.tenantId) {
       return NextResponse.json(
-        { error: "BAD_REQUEST: taskTitle e tenantId são obrigatórios" },
-        { status: 400 }
+        { error: authTenantContext.error || "UNAUTHORIZED_TENANT_CONTEXT" },
+        { status: 403, headers: { [CORRELATION_HEADER]: correlationId } }
+      );
+    }
+    const tenantId = authTenantContext.tenantId;
+
+    if (!taskTitle) {
+      return NextResponse.json(
+        { error: "BAD_REQUEST: taskTitle é obrigatório" },
+        { status: 400, headers: { [CORRELATION_HEADER]: correlationId } }
       );
     }
 
-    // 1. Verificar se o tenant possui benefício cognitivo ativo
-    const tenantSettings = await getTenantCognitiveSettings(client as any, tenantId);
-    if (!tenantSettings || !tenantSettings.is_enabled) {
+    // 2. Entitlement Comercial
+    const entitlement = await checkFeatureEntitlement(client as any, tenantId, "cognitive_support");
+    if (!entitlement.allowed) {
       return NextResponse.json(
-        { error: "FORBIDDEN: O benefício de Suporte Cognitivo não está ativo para esta organização" },
-        { status: 403 }
+        { error: entitlement.reason || "FEATURE_NOT_ENTITLED" },
+        { status: 403, headers: { [CORRELATION_HEADER]: correlationId } }
       );
     }
 
-    // 2. Verificar consentimento informado do colaborador
+    // 3. Verificar consentimento informado do colaborador
     const userProfile = await getCognitiveUserProfile(client as any, user.id);
     if (!userProfile || !userProfile.consent_given_at || userProfile.is_consent_revoked) {
       return NextResponse.json(
         { error: "CONSENT_REQUIRED: É necessário aceitar o termo de consentimento do programa" },
-        { status: 403 }
+        { status: 403, headers: { [CORRELATION_HEADER]: correlationId } }
       );
     }
 
-    // 3. Verificar cota de LLM do colaborador hoje
-    const tracker = new LlmGuardUsageTracker();
+    // 4. LLM Guard (Lease Acquire + PII Detection + Quota Check Atômica)
+    const guard = new LLMGuardSession();
     const currentUsage = await getLlmUsageToday(client as any, user.id);
-    const quotaCheck = tracker.checkQuota(currentUsage);
+    const combinedInput = `${taskTitle} - ${taskDescription || ""}`;
+    const acquireVerdict = await guard.acquire(
+      {
+        operation: "cognitive_breakdown",
+        userId: user.id,
+        tenantId,
+        inputContent: combinedInput,
+        estimatedInputTokens: 250,
+        estimatedOutputTokens: 350
+      },
+      currentUsage,
+      (cost, maxCost) => acquireLlmLease(client as any, user.id, tenantId, cost, maxCost)
+    );
 
-    if (!quotaCheck.allowed) {
+    if (!acquireVerdict.allowed) {
       return NextResponse.json(
-        { error: quotaCheck.reason, quota: quotaCheck },
-        { status: 429 }
+        { error: acquireVerdict.reason || acquireVerdict.code },
+        { status: acquireVerdict.code === "QUOTA_EXCEEDED" ? 429 : 400, headers: { [CORRELATION_HEADER]: correlationId } }
       );
     }
 
-    // 4. Decomposição de Tarefas (Estrutura de Apoio Executivo)
-    // Algoritmo de desdobramento de funções executivas focado em foco e clareza
+    // 5. Decomposição de Tarefas (Estrutura de Apoio Executivo)
     const targetMinutes = estimatedMinutes || 45;
     const microStepDuration = Math.max(10, Math.min(25, Math.round(targetMinutes / 3)));
 
@@ -96,37 +133,88 @@ export async function POST(req: NextRequest) {
     ];
 
     // Validação de Guardrail Anti-Diagnóstico
+    const tracker = new LlmGuardUsageTracker();
     const serializedSteps = JSON.stringify(steps);
     const guardrail = tracker.validateCognitiveOutput(serializedSteps);
     if (!guardrail.valid) {
       return NextResponse.json(
         { error: "GUARDRAIL_VIOLATION: Conteúdo incompatível com diretrizes não clínicas" },
-        { status: 500 }
+        { status: 500, headers: { [CORRELATION_HEADER]: correlationId } }
       );
     }
 
-    // 5. Registrar consumo de tokens e hashes de auditoria
-    const simulatedTokens = 350;
-    const costUsd = tracker.calculateCost(simulatedTokens);
-    await recordLlmUsage(client as any, user.id, tenantId, simulatedTokens, costUsd);
-
-    const promptHash = tracker.hashContent(`${taskTitle} - ${taskDescription || ""}`);
-    const responseHash = tracker.hashContent(serializedSteps);
-
-    return NextResponse.json({
-      success: true,
-      task: {
-        title: taskTitle,
-        steps,
-        estimatedMinutes: microStepDuration * steps.length,
-        audit: { promptHash, responseHash }
-      },
-      disclaimer: "Este recurso oferece apoio à organização, foco e funções executivas. Não realiza diagnóstico médico nem substitui avaliação profissional."
+    // 6. Reconciliação do Consumo Real de LLM com Delta Accounting (SEC-05)
+    const actualInputTokens = 150;
+    const actualOutputTokens = 200;
+    const reconciled = guard.reconcile({
+      leaseId: acquireVerdict.leaseId,
+      userId: user.id,
+      tenantId,
+      actualInputTokens,
+      actualOutputTokens,
+      providerSucceeded: true
     });
+
+    await recordLlmUsage(
+      client as any,
+      user.id,
+      tenantId,
+      reconciled.actualTokens,
+      reconciled.actualCostUsd,
+      acquireVerdict.estimatedCostUsd
+    );
+
+    // 7. Telemetria e Auditoria Criptográfica Two-Phase
+    const latencyMs = Date.now() - startTime;
+    const auditPayload = {
+      operation: "cognitive_breakdown",
+      feature: "cognitive_support",
+      model: "approved-claude-3-haiku",
+      status: "SUCCESS" as const,
+      inputTokens: actualInputTokens,
+      outputTokens: actualOutputTokens,
+      costUsd: reconciled.actualCostUsd,
+      latencyMs,
+      correlationId,
+      tenantId,
+      userId: user.id
+    };
+
+    const capability = TwoPhaseAuditManager.mintAuditCapability(auditPayload);
+
+    await logCognitiveSupportEvent(client as any, {
+      userId: user.id,
+      tenantId,
+      eventType: "task_decomposed",
+      context: {
+        taskTitle,
+        stepsCount: steps.length,
+        latencyMs,
+        auditToken: capability.token,
+        payloadHash: capability.payloadHash
+      }
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        task: {
+          title: taskTitle,
+          steps,
+          estimatedMinutes: microStepDuration * steps.length,
+          audit: {
+            correlationId,
+            payloadHash: capability.payloadHash
+          }
+        },
+        disclaimer: "Este recurso oferece apoio à organização, foco e funções executivas. Não realiza diagnóstico médico nem substitui avaliação profissional."
+      },
+      { status: 200, headers: { [CORRELATION_HEADER]: correlationId } }
+    );
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || "INTERNAL_SERVER_ERROR" },
-      { status: 500 }
+      { status: 500, headers: { [CORRELATION_HEADER]: correlationId } }
     );
   }
 }

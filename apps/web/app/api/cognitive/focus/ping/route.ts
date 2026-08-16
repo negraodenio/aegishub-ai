@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { pingCognitiveFocusSession } from "@mindops/database";
+import { pingCognitiveFocusSession ,  resolveAuthorizedTenantContext,
+  acquireLlmLease
+,
+  checkFeatureEntitlement
+,
+  getCognitiveUserProfile
+} from "@mindops/database";
 import { resolveCorrelationId, CORRELATION_HEADER } from "@mindops/ai-core";
 
 export const dynamic = "force-dynamic";
@@ -49,3 +55,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

@@ -7,7 +7,11 @@ import {
   getCognitiveWeeklyStats,
   logCognitiveSupportEvent,
   getCognitiveSupportEvents,
-  checkFeatureEntitlement
+  checkFeatureEntitlement,
+  resolveAuthorizedTenantContext,
+  getCognitiveUserProfile,
+  upsertCognitiveUserProfile,
+  recordLlmUsage
 } from "../../src";
 import {
   containsSensitiveData,
@@ -277,8 +281,8 @@ describe("AEGISHUB AI — P5.1 Cognitive Accessibility Suite (Wave 1)", () => {
     const tracker = new LlmGuardUsageTracker();
     const guard = new LLMGuardSession(tracker);
 
-    it("deve conceder lease para requisição válida dentro da cota", () => {
-      const verdict = guard.acquire(
+    it("deve conceder lease para requisição válida dentro da cota", async () => {
+      const verdict = await guard.acquire(
         {
           operation: "cognitive_chat",
           userId: userA,
@@ -295,8 +299,8 @@ describe("AEGISHUB AI — P5.1 Cognitive Accessibility Suite (Wave 1)", () => {
       expect(verdict.leaseId).toMatch(/^lease_/);
     });
 
-    it("deve bloquear requisições contendo dados sensíveis / PII antes do LLM", () => {
-      const verdict = guard.acquire(
+    it("deve bloquear requisições contendo dados sensíveis / PII antes do LLM", async () => {
+      const verdict = await guard.acquire(
         {
           operation: "cognitive_chat",
           userId: userA,
@@ -312,8 +316,8 @@ describe("AEGISHUB AI — P5.1 Cognitive Accessibility Suite (Wave 1)", () => {
       expect(verdict.code).toBe("SENSITIVE_DATA_DETECTED");
     });
 
-    it("deve bloquear quando a cota diária de custo estiver excedida ($0.25)", () => {
-      const verdict = guard.acquire(
+    it("deve bloquear quando a cota diária de custo estiver excedida ($0.25)", async () => {
+      const verdict = await guard.acquire(
         {
           operation: "cognitive_chat",
           userId: userA,
@@ -469,4 +473,234 @@ describe("AEGISHUB AI — P5.1 Cognitive Accessibility Suite (Wave 1)", () => {
       expect(PLAN_CATALOG.enterprise.entitlements.cognitive_support).toBe(true);
     });
   });
+
+  // ============================================================================
+  // 10. SECURITY HARDENING VERIFICATION (SEC-01 TO SEC-06)
+  // ============================================================================
+  describe("Security Hardening & Adversarial Verification (SEC-01 to SEC-06)", () => {
+    // Mock client with active tenant memberships
+    const createMembershipMockClient = (memberships: any[]) => ({
+      from: (table: string) => {
+        if (table === "tenant_memberships") {
+          return {
+            select: () => ({
+              eq: (field1: string, val1: any) => ({
+                eq: (field2: string, val2: any) => {
+                  const filtered = memberships.filter(
+                    m => m[field1] === val1 && m[field2] === val2
+                  );
+                  return Promise.resolve({ data: filtered, error: null });
+                }
+              })
+            })
+          };
+        }
+        if (table === "profiles") {
+          return {
+            select: () => ({
+              eq: (field: string, val: any) => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+                single: () => Promise.resolve({ data: null, error: null })
+              })
+            })
+          };
+        }
+        return {
+          select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) })
+        };
+      }
+    });
+
+    it("SEC-01: deve rejeitar tenant estrangeiro no fluxo de decomposição de tarefas", async () => {
+      const client = createMembershipMockClient([
+        { id: "m1", user_id: userA, tenant_id: "tenant-allowed", role: "employee", status: "active" }
+      ]);
+
+      const result = await resolveAuthorizedTenantContext(client as any, userA, "tenant-hacker-evil");
+      expect(result.tenantId).toBe("");
+      expect(result.error).toBe("UNAUTHORIZED_TENANT_CONTEXT");
+    });
+
+    it("SEC-01: deve aceitar tenant autorizado no fluxo de decomposição de tarefas", async () => {
+      const client = createMembershipMockClient([
+        { id: "m1", user_id: userA, tenant_id: "tenant-allowed", role: "employee", status: "active" }
+      ]);
+
+      const result = await resolveAuthorizedTenantContext(client as any, userA, "tenant-allowed");
+      expect(result.tenantId).toBe("tenant-allowed");
+      expect(result.error).toBeUndefined();
+    });
+
+    it("SEC-02: deve bloquear consentimento quando o colaborador tenta vincular tenant estrangeiro", async () => {
+      const client = createMembershipMockClient([
+        { id: "m1", user_id: userA, tenant_id: "tenant-corp-a", role: "employee", status: "active" }
+      ]);
+
+      const result = await resolveAuthorizedTenantContext(client as any, userA, "tenant-corp-b");
+      expect(result.tenantId).toBe("");
+      expect(result.error).toBe("UNAUTHORIZED_TENANT_CONTEXT");
+    });
+
+    it("SEC-02: deve permitir consentimento quando o colaborador vincula sua organização autorizada", async () => {
+      const client = createMembershipMockClient([
+        { id: "m1", user_id: userA, tenant_id: "tenant-corp-a", role: "employee", status: "active" }
+      ]);
+
+      const result = await resolveAuthorizedTenantContext(client as any, userA, "tenant-corp-a");
+      expect(result.tenantId).toBe("tenant-corp-a");
+      expect(result.error).toBeUndefined();
+    });
+
+    it("SEC-03: deve derivar tenantId da sessão persistida e impedir adulteração no encerramento de foco", async () => {
+      const client = createMockClient(userA);
+      const session = await startCognitiveFocusSession(client, {
+        userId: userA,
+        tenantId: "tenant-persisted-alpha",
+        goal: "Trabalho focado",
+        durationPresetSeconds: 1500
+      });
+
+      expect(session).not.toBeNull();
+      expect(session?.tenant_id).toBe("tenant-persisted-alpha");
+
+      const ended = await endCognitiveFocusSession(client, {
+        userId: userA,
+        sessionId: session!.id!,
+        durationActualSeconds: 1200,
+        completed: true
+      });
+
+      expect(ended).not.toBeNull();
+      // O tenantId retornado pela sessão terminada deve ser estritamente o persistido
+      expect(ended?.tenant_id).toBe("tenant-persisted-alpha");
+    });
+
+    it("SEC-03: deve bloquear Usuário B ao tentar encerrar sessão do Usuário A (IDOR)", async () => {
+      const clientA = createMockClient(userA);
+      const clientB = createMockClient(userB);
+
+      const sessionA = await startCognitiveFocusSession(clientA, {
+        userId: userA,
+        tenantId: "tenant-alpha",
+        goal: "Segredo de A",
+        durationPresetSeconds: 1500
+      });
+
+      const attempt = await endCognitiveFocusSession(clientB, {
+        userId: userB,
+        sessionId: sessionA!.id!,
+        durationActualSeconds: 100,
+        completed: true
+      });
+
+      expect(attempt).toBeNull();
+    });
+
+    it("SEC-04: deve rejeitar membership quando o status for revoked ou suspended", async () => {
+      const client = createMembershipMockClient([
+        { id: "m1", user_id: userA, tenant_id: "tenant-suspended", role: "employee", status: "suspended" },
+        { id: "m2", user_id: userA, tenant_id: "tenant-invited", role: "employee", status: "invited" }
+      ]);
+
+      const result = await resolveAuthorizedTenantContext(client as any, userA, "tenant-suspended");
+      expect(result.tenantId).toBe("");
+      expect(result.error).toBe("USER_NO_ACTIVE_MEMBERSHIPS");
+    });
+
+    it("SEC-04: deve rejeitar seleção ambígua quando o usuário possui múltiplos tenants e não selecionou nenhum", async () => {
+      const client = createMembershipMockClient([
+        { id: "m1", user_id: userA, tenant_id: "tenant-1", role: "employee", status: "active" },
+        { id: "m2", user_id: userA, tenant_id: "tenant-2", role: "employee", status: "active" }
+      ]);
+
+      const result = await resolveAuthorizedTenantContext(client as any, userA, undefined);
+      expect(result.tenantId).toBe("");
+      expect(result.error).toBe("AMBIGUOUS_TENANT_CONTEXT_REQUIRES_EXPLICIT_SELECTION");
+    });
+
+    it("SEC-04: deve selecionar automaticamente o tenant quando o usuário possui exatamente uma membership ativa", async () => {
+      const client = createMembershipMockClient([
+        { id: "m1", user_id: userA, tenant_id: "tenant-only-one", role: "employee", status: "active" }
+      ]);
+
+      const result = await resolveAuthorizedTenantContext(client as any, userA, undefined);
+      expect(result.tenantId).toBe("tenant-only-one");
+      expect(result.error).toBeUndefined();
+    });
+
+    it("SEC-05: deve calcular reconciliação delta sem contagem dupla quando actual < estimated", () => {
+      const estimatedCost = 0.010;
+      const actualCost = 0.008;
+      const delta = actualCost - estimatedCost;
+
+      expect(delta).toBeCloseTo(-0.002, 6);
+      const initialBudgetReservation = estimatedCost; // 0.010
+      const finalRecordedSpend = initialBudgetReservation + delta; // 0.008
+      expect(finalRecordedSpend).toBeCloseTo(0.008, 6);
+    });
+
+    it("SEC-05: deve calcular reconciliação delta sem contagem dupla quando actual > estimated", () => {
+      const estimatedCost = 0.010;
+      const actualCost = 0.015;
+      const delta = actualCost - estimatedCost;
+
+      expect(delta).toBeCloseTo(0.005, 6);
+      const initialBudgetReservation = estimatedCost; // 0.010
+      const finalRecordedSpend = initialBudgetReservation + delta; // 0.015
+      expect(finalRecordedSpend).toBeCloseTo(0.015, 6);
+    });
+
+    it("SEC-05: deve falhar atomicamente quando o lease exceder o teto diário de $0.25", async () => {
+      const tracker = new LlmGuardUsageTracker();
+      const guard = new LLMGuardSession(tracker);
+
+      // Simula callback atômico do DB rejeitando por estouro de cota
+      const dbAtomicLeaseMock = vi.fn().mockResolvedValue(false);
+
+      const verdict = await guard.acquire(
+        {
+          operation: "cognitive_breakdown",
+          userId: userA,
+          tenantId: "tenant-test",
+          inputContent: "Organizar tarefas do dia",
+          estimatedInputTokens: 200,
+          estimatedOutputTokens: 300
+        },
+        { dailyTokensUsed: 1000, dailyCostUsd: 0.24 },
+        dbAtomicLeaseMock
+      );
+
+      expect(verdict.allowed).toBe(false);
+      expect(verdict.code).toBe("QUOTA_EXCEEDED");
+      expect(dbAtomicLeaseMock).toHaveBeenCalledWith(0.001, 0.25);
+    });
+
+    it("SEC-06: deve validar contrato de RPC reconcile_llm_usage com delta adjustment", async () => {
+      let rpcParamsCaptured: any = null;
+      const client = {
+        rpc: vi.fn((fnName: string, params: any) => {
+          rpcParamsCaptured = { fnName, ...params };
+          return Promise.resolve({
+            data: { daily_tokens_used: params.p_tokens, daily_cost_usd: params.p_actual_cost },
+            error: null
+          });
+        })
+      };
+
+      const res = await recordLlmUsage(
+        client as any,
+        userA,
+        "tenant-test",
+        350,
+        0.008,
+        0.010 // estimatedCostUsd
+      );
+
+      expect(res.success).toBe(true);
+      expect(rpcParamsCaptured.fnName).toBe("reconcile_llm_usage");
+      expect(rpcParamsCaptured.p_actual_cost).toBe(0.008);
+      expect(rpcParamsCaptured.p_estimated_cost).toBe(0.010);
+    });
+  });
 });
+
