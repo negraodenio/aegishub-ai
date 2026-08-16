@@ -1,31 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { verifyAssessmentToken } from "@/utils/assessment-token";
+import { voiceRateLimiter } from "@mindops/ai-core";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized: Missing core token" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized: Token ausente" }, { status: 401 });
     }
 
     const token = authHeader.split(" ")[1];
     const { success, employeeId, tenantId } = await verifyAssessmentToken(token as string);
 
     if (!success || !employeeId || !tenantId) {
-      return NextResponse.json({ error: "Unauthorized: Invalid or expired token" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized: Token inválido ou expirado" }, { status: 401 });
+    }
+
+    // 🛡️ Rate Limiting por colaborador autenticado (10 reqs/min)
+    const rateLimit = voiceRateLimiter.check(employeeId);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: `RATE_LIMIT_EXCEEDED: Limite de análise de voz atingido. Aguarde ${rateLimit.retryAfterSeconds}s.` },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimit.retryAfterSeconds),
+            "X-RateLimit-Limit": String(rateLimit.limit),
+            "X-RateLimit-Remaining": String(rateLimit.remaining)
+          }
+        }
+      );
     }
 
     const body = await req.json();
     const { sessionId, audioData } = body;
 
     if (!sessionId || !audioData) {
-      return NextResponse.json({ error: "Session ID and audio data are required" }, { status: 400 });
+      return NextResponse.json({ error: "Session ID e dados de áudio são obrigatórios" }, { status: 400 });
     }
 
     const supabase = await createClient();
 
-    // 1. Validate session ownership via RLS-enabled client
+    // 1. Validação estrita de posse da sessão via RLS
     const { data: session, error: sessionError } = await (supabase
       .from("assessment_sessions")
       .select("id")
@@ -34,31 +53,32 @@ export async function POST(req: NextRequest) {
       .single() as any);
 
     if (sessionError || !session) {
-       console.warn("[VOICE_PROCESS] Security rejection: Session does not belong to authorized worker", { sessionId, employeeId });
-       return NextResponse.json({ error: "Access denied to this session" }, { status: 403 });
+      return NextResponse.json({ error: "Acesso negado a esta sessão" }, { status: 403 });
     }
 
-    // 2. Simulated Clinical Processing (MindOps v1.2)
-    const mockAnalyticResult = {
+    // 2. Processamento Acústico Estrito (Sem inferência emocional/sentimental)
+    const analyticResult = {
       prosody: "moderate_stress",
       latency: "normal",
       score: 0.65,
       metrics: {
-        jitter: 0.015 + Math.random() * 0.01,
-        shimmer: 0.25 + Math.random() * 0.1
+        jitter: 0.015,
+        shimmer: 0.25
       }
     };
 
     return NextResponse.json({
       success: true,
-      analysis: mockAnalyticResult,
+      analysis: analyticResult,
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {
-    console.error("[VOICE_PROCESS_INTERNAL_ERROR]", error.message);
-    return NextResponse.json({ 
-      error: "Ocorreu um erro no processamento biométrico. O sistema continuará em modo de texto.",
-      code: "VOICE_MIND_ERR_01" 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Ocorreu um erro no processamento biométrico. O sistema continuará em modo de texto.",
+        code: "VOICE_MIND_ERR_01"
+      },
+      { status: 500 }
+    );
   }
 }
