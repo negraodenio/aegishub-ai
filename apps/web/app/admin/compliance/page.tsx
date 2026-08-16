@@ -1,30 +1,55 @@
 import { OrganizationalHeatmap } from "../../../features/compliance/components/OrganizationalHeatmap";
 import { createClient } from "../../../utils/supabase/server";
-import { redirect } from "next/navigation";
+import { resolveTenantContext } from "@/lib/tenant-context";
+import { getCampaignsByTenant, getCampaignAggregates } from "@mindops/database";
 
-export default async function CompliancePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export const dynamic = "force-dynamic";
 
-  if (!user) {
-    redirect("/auth/login");
+export default async function CompliancePage({
+  searchParams
+}: {
+  searchParams: Promise<{ campaignId?: string }>;
+}) {
+  const { campaignId } = await searchParams;
+  const client = await createClient();
+
+  // 🛡️ P0/P4: Resolução estrita do contexto de tenant
+  const tenantContext = await resolveTenantContext({
+    requiredRoles: ["admin", "dpo", "rh", "sst_professional", "auditor"],
+    redirectToLoginOnFail: true
+  });
+
+  const tenantId = tenantContext.tenantId;
+  const tenantName = tenantContext.tenantName;
+  const countryCode = tenantContext.countryCode;
+
+  // Obter campanhas da organização
+  const campaigns = await getCampaignsByTenant(client as any, tenantId);
+  const activeCampaign = campaignId
+    ? campaigns.find((c) => c.id === campaignId) || campaigns[0]
+    : campaigns[0];
+
+  let aggregates = null;
+  if (activeCampaign) {
+    aggregates = await getCampaignAggregates(client as any, activeCampaign);
   }
 
-  // Verificar se o utilizador tem perfil de Admin ou DPO
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single() as any;
 
-  if (profile?.role === "hr") {
-    // HR can only see aggregate data, which the heatmap already is.
-    // However, we should restrict full access to the Governance tab if not Admin/DPO.
-  }
+  const departments = aggregates?.departmentHeatmap || [];
+  const compositeRiskIndex = aggregates?.avgRiskScore || null;
+  const totalAssessed = aggregates?.assessedCount || 0;
+  const hasData = (aggregates?.hasResponses && totalAssessed > 0) || false;
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <OrganizationalHeatmap />
+      <OrganizationalHeatmap
+        tenantName={tenantName}
+        countryCode={countryCode}
+        departments={departments}
+        compositeRiskIndex={compositeRiskIndex}
+        totalAssessed={totalAssessed}
+        hasData={hasData}
+      />
     </div>
   );
 }

@@ -4,11 +4,17 @@ import { useState, useEffect } from "react";
 import { Users, UserPlus, Link2, CheckCircle, Copy, AlertCircle, Building, Briefcase } from "lucide-react";
 import { getEmployeesAction, createEmployeeAction } from "../../../app/admin/team/actions";
 
-export function EmployeeManagement() {
+interface EmployeeManagementProps {
+  countryCode?: "PT" | "BR";
+}
+
+export function EmployeeManagement({ countryCode = "PT" }: EmployeeManagementProps) {
   const [employees, setEmployees] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const isPT = countryCode === "PT";
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -52,7 +58,9 @@ export function EmployeeManagement() {
             <Users className="text-emerald-500 h-8 w-8" />
             Gestão de Equipa
           </h2>
-          <p className="text-slate-500 text-sm mt-1 uppercase tracking-widest font-bold">Privacy-First Onboarding // Lei 102/2009</p>
+          <p className="text-slate-500 text-sm mt-1 uppercase tracking-widest font-bold">
+            {isPT ? "Privacy-First Onboarding // Lei 102/2009 (RGPD)" : "Privacy-First Onboarding // NR-1 / GRO (LGPD)"}
+          </p>
         </div>
         <button 
           onClick={() => setIsAdding(!isAdding)}
@@ -62,6 +70,7 @@ export function EmployeeManagement() {
           Novo Funcionário
         </button>
       </header>
+
 
       {isAdding && (
         <form onSubmit={handleCreate} className="bg-white/[0.03] border border-emerald-500/20 p-8 rounded-3xl space-y-6 animate-in slide-in-from-top-4">
