@@ -66,78 +66,89 @@ ALTER TABLE llm_usage_leases ENABLE ROW LEVEL SECURITY;
 -- ==============================================================================
 
 -- tenant_cognitive_settings: visualização por membros do tenant
+DROP POLICY IF EXISTS "tenant_cognitive_settings_select_policy" ON tenant_cognitive_settings;
 CREATE POLICY "tenant_cognitive_settings_select_policy"
     ON tenant_cognitive_settings
     FOR SELECT
     USING (
         tenant_id IN (
             SELECT tenant_id FROM tenant_memberships
-            WHERE user_id = auth.uid() AND is_active = true
+            WHERE user_id = auth.uid() AND status = 'active'
         )
     );
 
 -- tenant_cognitive_settings: atualização exclusiva por administradores e RH
+DROP POLICY IF EXISTS "tenant_cognitive_settings_admin_policy" ON tenant_cognitive_settings;
 CREATE POLICY "tenant_cognitive_settings_admin_policy"
     ON tenant_cognitive_settings
     FOR ALL
     USING (
         tenant_id IN (
             SELECT tenant_id FROM tenant_memberships
-            WHERE user_id = auth.uid() AND role IN ('admin', 'rh') AND is_active = true
+            WHERE user_id = auth.uid() AND role IN ('admin', 'rh') AND status = 'active'
         )
     )
     WITH CHECK (
         tenant_id IN (
             SELECT tenant_id FROM tenant_memberships
-            WHERE user_id = auth.uid() AND role IN ('admin', 'rh') AND is_active = true
+            WHERE user_id = auth.uid() AND role IN ('admin', 'rh') AND status = 'active'
         )
     );
 
 -- cognitive_user_profiles: ACESSO EXCLUSIVO DO PRÓPRIO UTILIZADOR (ZERO ACESSO AO RH/ADMIN)
+DROP POLICY IF EXISTS "cognitive_user_profiles_owner_only_select" ON cognitive_user_profiles;
 CREATE POLICY "cognitive_user_profiles_owner_only_select"
     ON cognitive_user_profiles
     FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "cognitive_user_profiles_owner_only_insert" ON cognitive_user_profiles;
 CREATE POLICY "cognitive_user_profiles_owner_only_insert"
     ON cognitive_user_profiles
     FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "cognitive_user_profiles_owner_only_update" ON cognitive_user_profiles;
 CREATE POLICY "cognitive_user_profiles_owner_only_update"
     ON cognitive_user_profiles
     FOR UPDATE
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "cognitive_user_profiles_owner_only_delete" ON cognitive_user_profiles;
 CREATE POLICY "cognitive_user_profiles_owner_only_delete"
     ON cognitive_user_profiles
     FOR DELETE
     USING (auth.uid() = user_id);
 
 -- cognitive_tasks: ACESSO EXCLUSIVO DO PRÓPRIO UTILIZADOR (ZERO ACESSO AO RH/ADMIN)
+DROP POLICY IF EXISTS "cognitive_tasks_owner_only_select" ON cognitive_tasks;
 CREATE POLICY "cognitive_tasks_owner_only_select"
     ON cognitive_tasks
     FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "cognitive_tasks_owner_only_insert" ON cognitive_tasks;
 CREATE POLICY "cognitive_tasks_owner_only_insert"
     ON cognitive_tasks
     FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "cognitive_tasks_owner_only_update" ON cognitive_tasks;
 CREATE POLICY "cognitive_tasks_owner_only_update"
     ON cognitive_tasks
     FOR UPDATE
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "cognitive_tasks_owner_only_delete" ON cognitive_tasks;
 CREATE POLICY "cognitive_tasks_owner_only_delete"
     ON cognitive_tasks
     FOR DELETE
     USING (auth.uid() = user_id);
 
 -- llm_usage_leases: ACESSO DO PRÓPRIO UTILIZADOR
+DROP POLICY IF EXISTS "llm_usage_leases_owner_only" ON llm_usage_leases;
 CREATE POLICY "llm_usage_leases_owner_only"
     ON llm_usage_leases
     FOR ALL
