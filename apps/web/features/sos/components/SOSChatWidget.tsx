@@ -50,8 +50,9 @@ export function SOSChatWidget() {
     <>
       {/* Floating SOS Button */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-rose-600 text-white shadow-2xl transition-all hover:bg-rose-700 hover:scale-110 active:scale-95 group overflow-hidden"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label={isOpen ? "Fechar chat SOS" : "Abrir chat SOS"}
+        className="fixed bottom-6 right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-rose-600 text-white shadow-2xl transition-all hover:bg-rose-700 hover:scale-110 active:scale-95 group overflow-hidden cursor-pointer"
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -94,6 +95,13 @@ export function SOSChatWidget() {
                   </div>
                 </div>
               </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="rounded-full p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+                aria-label="Fechar chat SOS"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             {/* Disclaimer Overlay */}
