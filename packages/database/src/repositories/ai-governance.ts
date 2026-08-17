@@ -186,7 +186,7 @@ export async function getPendingAIDecisions(
   const { data, error } = await (client.from("ai_decisions") as any)
     .select("*")
     .eq("tenant_id", tenantId)
-    .or("status.eq.pending,human_validated.is.null")
+    .eq("status", "pending")
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -208,7 +208,7 @@ export async function getAIAuditLogs(
   const { data, error } = await (client.from("ai_audit_logs") as any)
     .select("*, ai_decisions!inner(tenant_id)")
     .eq("ai_decisions.tenant_id", tenantId)
-    .order("timestamp", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {

@@ -12,3 +12,12 @@ export * from "./sensitive-data";
 export * from "./llm-guard-session";
 export * from "./cognitive-tip";
 export * from "./two-phase-audit";
+export * from "./cognitive/unstuck-context";
+export * from "./cognitive/unstuck-rag";
+export * from "./cognitive/unstuck-engine";
+export * from "./providers/openrouter";
+export * from "./providers/embedding-provider";
+// P5.3 — Voice Ergonomics Acoustic Engine
+export * from "./voice/types";
+export * from "./voice/acoustic-engine";
+

@@ -5,26 +5,32 @@ import {
   getLlmUsageToday,
   recordLlmUsage,
   checkFeatureEntitlement,
-  logCognitiveSupportEvent
-,  resolveAuthorizedTenantContext,
-  acquireLlmLease
+  logCognitiveSupportEvent,
+  resolveAuthorizedTenantContext,
+  acquireLlmLease,
+  searchCognitiveKnowledge
 } from "@mindops/database";
 import {
   LLMGuardSession,
-  LlmGuardUsageTracker,
   TwoPhaseAuditManager,
   resolveCorrelationId,
-  CORRELATION_HEADER
+  CORRELATION_HEADER,
+  CognitiveUnstuckEngine,
+  createInitialSessionContext,
+  OpenRouterProvider,
+  EmbeddingProvider,
+  DEFAULT_COGNITIVE_MODEL
 } from "@mindops/ai-core";
 
 export const dynamic = "force-dynamic";
 
 /**
  * 🤖 POST /api/cognitive/chief/chat
- * Assistente AI de Desbloqueio e Suporte Executivo no Trabalho
- * - Session-only (não persiste histórico no DB na Wave 1)
- * - Blindagem PII / Prompt Injection / Anti-Diagnóstico
- * - Lease + Reconcile de cotas
+ * Assistente AI de Desbloqueio e Suporte Executivo no Trabalho (P5.2 Wave 2)
+ * - Integração Real OpenRouter / Google Gemini 3 Flash (`google/gemini-3-flash-preview`)
+ * - Integração Real RAG pgvector (`match_cognitive_knowledge_chunks`)
+ * - Session-only (zero persistência de dados de pensamento para RH/Gestor)
+ * - Blindagem PII / Prompt Injection / Anti-Diagnóstico / Cota Atômica
  */
 export async function POST(req: NextRequest) {
   const correlationId = resolveCorrelationId(req.headers.get(CORRELATION_HEADER));
@@ -42,8 +48,9 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { tenantId: requestedTenantId, message, language = "pt" } = body;
+    const { tenantId: requestedTenantId, message, language = "pt", context: incomingContext } = body;
 
+    // 1. Resolução Autoritativa de Tenant (Anti-IDOR)
     const authTenantContext = await resolveAuthorizedTenantContext(client as any, user.id, requestedTenantId);
     if (authTenantContext.error || !authTenantContext.tenantId) {
       return NextResponse.json(
@@ -53,15 +60,14 @@ export async function POST(req: NextRequest) {
     }
     const tenantId = authTenantContext.tenantId;
 
-
-    if (false /* tenant check moved */ || !message) {
+    if (!message || typeof message !== "string" || !message.trim()) {
       return NextResponse.json(
-        { error: "BAD_REQUEST: tenantId e message são obrigatórios" },
+        { error: "BAD_REQUEST: message é obrigatório" },
         { status: 400, headers: { [CORRELATION_HEADER]: correlationId } }
       );
     }
 
-    // 1. Entitlement Comercial
+    // 2. Entitlement Comercial ("cognitive_support")
     const entitlement = await checkFeatureEntitlement(client as any, tenantId, "cognitive_support");
     if (!entitlement.allowed) {
       return NextResponse.json(
@@ -70,7 +76,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Consentimento Informado
+    // 3. Consentimento Informado (RGPD / LGPD)
     const profile = await getCognitiveUserProfile(client as any, user.id);
     if (!profile || !profile.consent_given_at || profile.is_consent_revoked) {
       return NextResponse.json(
@@ -79,7 +85,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. LLM Guard (Lease Acquire + PII Detection + Quota Check)
+    // 4. LLM Guard (Lease Acquire + Detecção de PII + Cota de $0.25/dia)
     const guard = new LLMGuardSession();
     const currentUsage = await getLlmUsageToday(client as any, user.id);
     const acquireVerdict = await guard.acquire(
@@ -88,8 +94,8 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         tenantId,
         inputContent: message,
-        estimatedInputTokens: 300,
-        estimatedOutputTokens: 400
+        estimatedInputTokens: 350,
+        estimatedOutputTokens: 450
       },
       currentUsage,
       (cost, maxCost) => acquireLlmLease(client as any, user.id, tenantId, cost, maxCost)
@@ -102,35 +108,67 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Geração de Resposta Neutra e Prática
-    // Simulação determinística de apoio executivo (sem expor PII ou inferir diagnósticos)
-    const isPt = String(language).toLowerCase().startsWith("pt");
-    const sanitizedInput = String(message).slice(0, 200).trim();
+    // 5. RAG Real com pgvector: Geração de Embedding + Busca Semântica
+    const embeddingProvider = new EmbeddingProvider();
+    const embeddingRes = await embeddingProvider.generateEmbedding(message);
+    const retrievedChunks = await searchCognitiveKnowledge(
+      client as any,
+      embeddingRes.embedding,
+      {
+        tenantId,
+        barrier: incomingContext?.identifiedBarrier ?? null,
+        language: String(language),
+        limit: 3
+      }
+    );
 
-    let responseContent = isPt
-      ? `Entendido. Para avançar com "${sanitizedInput}", recomendo começarmos pelo menor passo possível: reserve apenas 5 minutos para rascunhar os tópicos iniciais em um arquivo em branco. Quer que eu divida isso em passos menores?`
-      : `Understood. To unblock on "${sanitizedInput}", let's start with the smallest possible move: take just 5 minutes to outline the first key bullet points on a blank page. Would you like me to break this into smaller steps?`;
+    // 6. Integração Real OpenRouter / Google Gemini 3 Flash Preview
+    const openrouter = new OpenRouterProvider({ defaultModel: DEFAULT_COGNITIVE_MODEL });
+    const sessionContext = createInitialSessionContext(incomingContext || {});
+    const unstuckEngine = new CognitiveUnstuckEngine();
 
-    // 5. Output Safety & Guardrail Anti-Diagnóstico
-    const tracker = new LlmGuardUsageTracker();
-    const outputSafety = tracker.validateCognitiveOutput(responseContent);
+    let actualInputTokens = 200;
+    let actualOutputTokens = 250;
+    let providerSuccess = true;
 
-    if (!outputSafety.valid) {
-      responseContent = isPt
-        ? "Vamos simplificar: concentre-se no primeiro passo prático de 5 minutos para iniciar."
-        : "Let's keep it simple: focus on the first 5-minute practical step to get started.";
-    }
+    const engineResult = await unstuckEngine.processTurn({
+      userMessage: message,
+      context: sessionContext,
+      language: String(language),
+      retrievedChunks,
+      llmGenerator: async (systemPrompt: string, userPrompt: string) => {
+        const response = await openrouter.generateChatCompletion({
+          systemPrompt,
+          userPrompt,
+          model: DEFAULT_COGNITIVE_MODEL,
+          maxTokens: 600,
+          timeoutMs: 10000
+        });
 
-    // 6. Reconciliação do Consumo Real de LLM
-    const actualInputTokens = 120;
-    const actualOutputTokens = 180;
+        if (response.success && response.content) {
+          if (response.usage) {
+            actualInputTokens = response.usage.promptTokens || actualInputTokens;
+            actualOutputTokens = response.usage.completionTokens || actualOutputTokens;
+          }
+          providerSuccess = true;
+          return response.content;
+        }
+
+        providerSuccess = false;
+        throw new Error(response.error || "OPENROUTER_GENERATION_FAILED");
+      }
+    });
+
+    const responseContent = engineResult.message;
+
+    // 7. Reconciliação do Consumo Real de LLM
     const reconciled = guard.reconcile({
       leaseId: acquireVerdict.leaseId,
       userId: user.id,
       tenantId,
       actualInputTokens,
       actualOutputTokens,
-      providerSucceeded: true
+      providerSucceeded: providerSuccess
     });
 
     await recordLlmUsage(
@@ -142,12 +180,12 @@ export async function POST(req: NextRequest) {
       acquireVerdict.estimatedCostUsd
     );
 
-    // 7. Telemetria de Sessão e Auditoria Criptográfica
+    // 8. Telemetria e Auditoria Criptográfica com Model ID Real
     const latencyMs = Date.now() - startTime;
     const auditPayload = {
       operation: "cognitive_chat",
       feature: "cognitive_support",
-      model: "approved-claude-3-haiku",
+      model: DEFAULT_COGNITIVE_MODEL, // google/gemini-3-flash-preview
       status: "SUCCESS" as const,
       inputTokens: actualInputTokens,
       outputTokens: actualOutputTokens,
@@ -167,7 +205,11 @@ export async function POST(req: NextRequest) {
       context: {
         latencyMs,
         auditToken: capability.token,
-        payloadHash: capability.payloadHash
+        payloadHash: capability.payloadHash,
+        fsmState: engineResult.updatedContext.conversationState,
+        barrier: engineResult.updatedContext.identifiedBarrier,
+        ragCount: retrievedChunks.length,
+        model: DEFAULT_COGNITIVE_MODEL
       }
     });
 
@@ -175,12 +217,15 @@ export async function POST(req: NextRequest) {
       {
         success: true,
         response: responseContent,
-        disclaimer: isPt
-          ? "Assistente corporativo de produtividade e funções executivas. Não fornece aconselhamento ou diagnóstico médico."
-          : "Workplace executive support assistant. Does not provide medical advice or diagnosis.",
+        context: engineResult.updatedContext,
+        nextAction: engineResult.nextAction,
+        suggestedTimerSeconds: engineResult.suggestedTimerSeconds,
+        retrievedChunks: engineResult.retrievedChunkIds,
+        disclaimer: engineResult.disclaimer,
         audit: {
           correlationId,
-          payloadHash: capability.payloadHash
+          payloadHash: capability.payloadHash,
+          model: DEFAULT_COGNITIVE_MODEL
         }
       },
       { status: 200, headers: { [CORRELATION_HEADER]: correlationId } }
@@ -192,4 +237,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

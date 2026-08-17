@@ -66,6 +66,25 @@ export function FocusTimer({ tenantId, onSessionComplete }: FocusTimerProps) {
     };
   }, [isRunning, currentSessionId, elapsedSeconds]);
 
+  // Escuta evento global de início de timer a partir do Unstuck Chat
+  useEffect(() => {
+    const handleGlobalStart = (e: Event) => {
+      const customEvent = e as CustomEvent<{ durationSeconds?: number; goal?: string }>;
+      if (customEvent.detail) {
+        const dur = customEvent.detail.durationSeconds || 300;
+        const newGoal = customEvent.detail.goal || "Sessão de foco";
+        setSelectedDuration(dur);
+        setSecondsLeft(dur);
+        setGoal(newGoal);
+        setElapsedSeconds(0);
+        setIsRunning(true);
+      }
+    };
+
+    window.addEventListener("cognitive:start-timer", handleGlobalStart);
+    return () => window.removeEventListener("cognitive:start-timer", handleGlobalStart);
+  }, []);
+
   const handleStartSession = async () => {
     if (!goal.trim()) return;
 

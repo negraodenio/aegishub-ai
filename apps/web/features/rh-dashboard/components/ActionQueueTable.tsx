@@ -2,7 +2,9 @@
 
 import type { RHActionQueueItem } from "../types";
 import { getAssessmentInviteAction } from "../actions";
-import { PlayCircle, UserPlus } from "lucide-react";
+import { UserPlus, Mic } from "lucide-react";
+// PRIVACY: PlayCircle (individual voice playback) removed — HR must not access individual voice recordings.
+// Voice data is individual-only. HR sees only aggregated indicators (N >= 20).
 
 const badgeMap = {
   low: "bg-neutral-100 text-neutral-700",
@@ -28,7 +30,7 @@ export function ActionQueueTable({ items }: { items: RHActionQueueItem[] }) {
               <th className="px-6 py-4 text-left font-semibold text-[11px] uppercase tracking-wider">Prazo</th>
               <th className="px-6 py-4 text-left font-semibold text-[11px] uppercase tracking-wider">Prioridade</th>
               <th className="px-6 py-4 text-center font-semibold text-[11px] uppercase tracking-wider">Reavaliação</th>
-              <th className="px-6 py-4 text-center font-semibold text-[11px] uppercase tracking-wider">Biofonia</th>
+              <th className="px-6 py-4 text-center font-semibold text-[11px] uppercase tracking-wider" title="Indicador agregado — acesso individual bloqueado por privacidade">Voz</th>
               <th className="px-6 py-4 text-right font-semibold text-[11px] uppercase tracking-wider">Ações / Evidência</th>
             </tr>
           </thead>
@@ -54,15 +56,19 @@ export function ActionQueueTable({ items }: { items: RHActionQueueItem[] }) {
                     <span className="text-[10px] text-slate-600 uppercase font-bold tracking-widest">—</span>
                   )}
                 </td>
+                {/* PRIVACY CONTROL: Only shows whether voice session was completed (boolean).
+                    HR cannot listen to or access individual voice recordings.
+                    Raw audio is employee-private. Acoustic features visible only to the employee.
+                    Aggregated voice quality metrics available in the Intelligence Centre (N >= 20). */}
                 <td className="px-6 py-4 text-center">
                   {item.voicePath ? (
-                    <button 
-                      onClick={() => window.open(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/voice-assessments/${item.voicePath}`, '_blank')}
-                      className="inline-flex items-center gap-2 rounded-lg bg-indigo-500/10 px-3 py-1.5 text-[10px] font-bold text-indigo-400 hover:bg-indigo-500/20 transition-all border border-indigo-400/20"
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20"
+                      title="Sessão de ergonomia vocal concluída — dados individuais privados"
                     >
-                      <PlayCircle className="h-4 w-4" />
-                      Ouvir
-                    </button>
+                      <Mic className="h-3 w-3" />
+                      Concluído
+                    </span>
                   ) : (
                     <span className="text-[10px] text-slate-600 uppercase font-bold tracking-widest">N/A</span>
                   )}

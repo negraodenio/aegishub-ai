@@ -446,6 +446,9 @@ export function CognitiveExecutiveWorkspace({
       <section className="mt-8">
         <CognitiveWeeklyProgress />
       </section>
+
+      {/* 🤖 ASSISTENTE DE DESBLOQUEIO & SUPORTE EXECUTIVO (SESSION-ONLY) */}
+      <CognitiveAIChat tenantId={tenantId} />
     </main>
   );
 }
