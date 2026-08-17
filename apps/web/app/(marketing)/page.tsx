@@ -51,54 +51,73 @@ export default function MarketingPage() {
 
   const isPT = country === "PT";
 
-  // Dynamic localization content
+  // Dynamic localization content (Calibrado com rigor técnico e legal)
   const copy = {
     heroBadge: isPT
-      ? "AI-Powered Workplace Cognitive Intelligence • Portugal (SST / ACT)"
+      ? "AI-Powered Workplace Cognitive Intelligence • Portugal (SST)"
       : "AI-Powered Workplace Cognitive Intelligence • Brasil (NR-1 / GRO / PGR / NR-17)",
-    heroTitlePrefix: "Inteligência para ",
-    heroTitleHighlight: "Riscos Psicossociais",
-    heroTitleSuffix: " e Produtividade Cognitiva.",
     heroSubtitle: isPT
-      ? "Avalie, previna, apoie os trabalhadores e documente evidências auditáveis para a ACT (Lei 102/2009) com uma plataforma corporativa de Inteligência Artificial e Ergonomia Cognitiva."
-      : "Faça a gestão contínua de fatores psicossociais no PGR (NR-1), apoie os colaboradores no fluxo de trabalho e cumpra a NR-17 e CIPA+A com governança e sigilo garantido por algoritmo (N ≥ 5).",
+      ? "Avalie, previna, apoie os trabalhadores e transforme evidências em ações de SST com uma plataforma corporativa de Inteligência Artificial, análise de dados e ergonomia cognitiva."
+      : "Avalie, previna, apoie os colaboradores e estruture evidências contínuas para o PGR (NR-1) e NR-17 com apoio de Inteligência Artificial, ergonomia e foco no fluxo de trabalho.",
     ctaPrimary: isPT ? "Agendar Demonstração" : "Solicitar Demonstração",
     ctaSecondary: isPT ? "Programa Parceiros SST" : "Parceiros & Clínicas SST",
-    badge1: isPT ? "Lei n.º 102/2009 (SST / ACT)" : "NR-1 (GRO e PGR Contínuo)",
-    badge2: isPT ? "COPSOQ-II Validação Oficial" : "Worker Voice (NR-1.5.3.3)",
-    badge3: isPT ? "RGPD & EU AI Act Governance" : "LGPD, NR-17 & CIPA+A (Lei 14.457)",
+    badge1: isPT ? "Lei n.º 102/2009 — Segurança e Saúde no Trabalho" : "NR-1 (GRO e PGR Contínuo)",
+    badge2: isPT ? "COPSOQ-II — Evidência de Validação em Portugal" : "Worker Voice (NR-1.5.3.3)",
+    badge3: isPT ? "Privacidade RGPD & Governança de IA" : "LGPD, NR-17 & CIPA+A (Lei 14.457)",
     
     // Step 1
     step1Title: "AVALIAÇÃO INTEGRAL",
     step1Subtitle: isPT ? "Coleta Segura & COPSOQ-II" : "Escuta Ativa & Worker Voice",
     step1Desc: isPT
-      ? "Instrumentos psicossociais validados (COPSOQ-II curto e médio) distribuídos via links seguros com tokens descartáveis 100% anonimizados."
+      ? "Avaliações psicossociais estruturadas através de instrumentos com evidência de validação científica em Portugal, distribuídas através de mecanismos de acesso seguros."
       : "Diagnóstico ocupacional contínuo conforme NR-1.5.3.3. Questionários dinâmicos com preservação de sigilo e adesão espontânea.",
-    step1Item1: isPT ? "Silo de dados isolado e anónimo" : "Garantia de sigilo absoluto ao trabalhador",
-    step1Item2: isPT ? "Mapeamento COPSOQ-II validado" : "Adesão às diretrizes do GRO/PGR",
+    step1Item1: isPT ? "Isolamento de dados por organização" : "Isolamento de dados por organização",
+    step1Item2: isPT ? "Proteção e agregação das respostas" : "Proteção e agregação das respostas",
+    step1Item3: isPT ? "Avaliação estruturada de fatores psicossociais" : "Avaliação estruturada de fatores psicossociais",
 
     // Step 2
     step2Title: "INTELIGÊNCIA PREVENTIVA",
     step2Subtitle: isPT ? "Matriz de Risco & Alertas" : "Matriz de Severidade & Tendências",
     step2Desc: isPT
-      ? "Composição multidimensional de scores por departamento e estabelecimento. Mapas de calor que identificam áreas prioritárias sem expor indivíduos."
+      ? "Transformação de dados agregados em indicadores de risco psicossocial por departamento, estabelecimento ou grupo organizacional, sem exposição de respostas individuais."
       : "Cruzamento inteligente de probabilidade e severidade. Detecção precoce de setores sob sobrecarga para tomada de decisão fundamentada.",
-    step2Item1: isPT ? "Matriz de probabilidade e severidade" : "Priorização automática de setores críticos",
-    step2Item2: isPT ? "Limiar de anonimato N ≥ 5 ativo" : "Trava matemática anti-reidentificação",
+    step2Item1: isPT ? "Matriz de probabilidade e severidade" : "Matriz de probabilidade e severidade",
+    step2Item2: isPT ? "Identificação de áreas prioritárias" : "Identificação de áreas prioritárias",
+    step2Item3: isPT ? "Indicadores agregados para apoio à decisão" : "Indicadores agregados para apoio à decisão",
+    step2Item4: isPT ? "Alertas e acompanhamento preventivo" : "Alertas e acompanhamento preventivo",
 
     // Step 3
     step3Title: "AÇÃO & CONFORMIDADE",
-    step3Subtitle: isPT ? "Medidas Preventivas & ACT" : "Plano de Ação do PGR & MTE",
+    step3Subtitle: isPT ? "Medidas Preventivas & Evidências" : "Plano de Ação do PGR & Evidências",
     step3Desc: isPT
-      ? "Gestão do ciclo de prevenção (Art. 15º Lei 102/2009). Atribuição de responsáveis, prazos, evidências e exportação de relatórios para a ACT."
-      : "Controle e acompanhamento de medidas preventivas do PGR (NR-1.5.5). Rastreabilidade de ações, evidências anexadas e histórico auditável.",
-    step3Item1: isPT ? "Relatório Oficial ACT em PDF" : "Inventário de Riscos & Ações do PGR",
-    step3Item2: isPT ? "Registo contínuo de evidências" : "Documentação pronta para fiscalização",
+      ? "Gestão do ciclo de prevenção, com definição de medidas, responsáveis, prazos, evidências e acompanhamento. A Lei n.º 102/2009 estabelece a identificação e avaliação dos riscos e a adoção de medidas adequadas de prevenção."
+      : "Gestão do ciclo de prevenção do PGR (NR-1.5.5), com definição de medidas preventivas, responsáveis, cronogramas, evidências e acompanhamento contínuo.",
+    step3Item1: isPT ? "Planos de ação preventivos" : "Planos de ação preventivos do PGR",
+    step3Item2: isPT ? "Responsáveis e prazos rastreáveis" : "Responsáveis e prazos rastreáveis",
+    step3Item3: isPT ? "Registo contínuo de evidências" : "Registo contínuo de evidências",
+    step3Item4: isPT ? "Relatórios técnicos para apoio à SST e auditorias" : "Relatórios técnicos para apoio ao PGR e auditorias",
+
+    // Personas
+    rhDesc: isPT
+      ? "Indicadores organizacionais agregados para apoiar decisões de pessoas, prevenção e melhoria das condições de trabalho."
+      : "Indicadores organizacionais agregados para apoiar decisões de pessoas, retenção e melhoria contínua do ambiente de trabalho.",
+    sstDesc: isPT
+      ? "Avaliação, indicadores, planos preventivos e documentação de apoio à gestão de Segurança e Saúde no Trabalho."
+      : "Avaliação, indicadores, planos preventivos e documentação de apoio ao PGR e gestão de SST.",
+    dpoDesc: isPT
+      ? "Controles de acesso, RLS, segregação de dados, trilhos de auditoria e políticas de agregação."
+      : "Controles de acesso, RLS, segregação de dados por tenant, trilhos de auditoria e conformidade LGPD.",
+    colabDesc: isPT
+      ? "Ferramentas de organização, foco e desbloqueio de tarefas, sem disponibilizar ao empregador o conteúdo individual das sessões privadas."
+      : "Ferramentas de organização, foco e desbloqueio de tarefas, sem compartilhamento de conteúdo individual com a chefia.",
+    dirDesc: isPT
+      ? "Visão agregada dos principais indicadores, prioridades de intervenção e evolução das ações preventivas."
+      : "Visão agregada dos principais indicadores, prioridades de intervenção e apoio à redução de exposição a riscos.",
 
     // Partner Box
     partnerTitle: isPT ? "Technology Partner para Empresas de SST" : "Parceiro Tecnológico para Clínicas e Consultorias de SST",
     partnerQuote: isPT
-      ? "«A sua empresa mantém a responsabilidade técnica médica/ergonómica. O AegisHub fornece a infraestrutura de inteligência.»"
+      ? "«A sua empresa mantém a responsabilidade técnica. O AegisHub fornece a infraestrutura digital de inteligência, avaliação e acompanhamento.»"
       : "«Sua consultoria lidera a estratégia ocupacional. O AegisHub entrega a tecnologia e automação de ponta a ponta.»"
   };
 
@@ -145,7 +164,6 @@ export default function MarketingPage() {
 
           {/* Country Switcher + Action Buttons */}
           <div className="flex items-center gap-3">
-            {/* Country Selector */}
             <div className="flex items-center gap-1 bg-white/[0.06] p-1 rounded-2xl border border-white/10 shadow-inner">
               <button
                 onClick={() => setCountry("PT")}
@@ -187,7 +205,7 @@ export default function MarketingPage() {
 
       <main className="relative z-10 pt-12">
         
-        {/* 🚀 1. HERO SECTION (Com Headline Poderosa e Mockup Integrado) */}
+        {/* 🚀 1. HERO SECTION */}
         <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-12 md:py-20">
           <div className="text-center max-w-4xl mx-auto space-y-6">
             
@@ -283,6 +301,10 @@ export default function MarketingPage() {
                       <Check className="w-4 h-4 text-[#1FC6A5] shrink-0 mt-0.5" />
                       <span>{copy.step1Item2}</span>
                     </li>
+                    <li className="flex items-start gap-3 text-xs text-slate-300">
+                      <Check className="w-4 h-4 text-[#1FC6A5] shrink-0 mt-0.5" />
+                      <span>{copy.step1Item3}</span>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -291,7 +313,7 @@ export default function MarketingPage() {
               <div className="mt-auto bg-black/60 rounded-2xl p-4 border border-white/10 space-y-2.5">
                 <div className="flex justify-between text-[11px] font-bold text-slate-300">
                   <span>Coleta Segura COPSOQ-II</span>
-                  <span className="text-[#1FC6A5] font-mono">100% Anônimo</span>
+                  <span className="text-[#1FC6A5] font-mono">Protegido</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
                   <div className="bg-white/5 p-2 rounded-xl border border-white/5">
@@ -300,12 +322,15 @@ export default function MarketingPage() {
                   </div>
                   <div className="bg-white/5 p-2 rounded-xl border border-white/5">
                     <div className="text-slate-400">Tempo</div>
-                    <div className="text-white font-bold">4 min</div>
+                    <div className="text-white font-bold">~4 min*</div>
                   </div>
                   <div className="bg-white/5 p-2 rounded-xl border border-white/5">
-                    <div className="text-slate-400">Limiar</div>
-                    <div className="text-cyan-400 font-bold">N ≥ 5</div>
+                    <div className="text-slate-400">Agregação</div>
+                    <div className="text-cyan-400 font-bold">N ≥ 5*</div>
                   </div>
+                </div>
+                <div className="text-[9px] text-slate-500 text-center italic pt-1">
+                  * Configuração sujeita ao instrumento, desenho da avaliação e política de privacidade adotada.
                 </div>
               </div>
             </article>
@@ -328,7 +353,7 @@ export default function MarketingPage() {
                   <p className="text-slate-400 text-xs mb-6 leading-relaxed">
                     {copy.step2Desc}
                   </p>
-                  <ul className="space-y-3 mb-6">
+                  <ul className="space-y-2.5 mb-6">
                     <li className="flex items-start gap-3 text-xs text-slate-300">
                       <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                       <span>{copy.step2Item1}</span>
@@ -336,6 +361,14 @@ export default function MarketingPage() {
                     <li className="flex items-start gap-3 text-xs text-slate-300">
                       <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                       <span>{copy.step2Item2}</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-xs text-slate-300">
+                      <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                      <span>{copy.step2Item3}</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-xs text-slate-300">
+                      <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                      <span>{copy.step2Item4}</span>
                     </li>
                   </ul>
                 </div>
@@ -345,19 +378,19 @@ export default function MarketingPage() {
               <div className="mt-auto bg-black/60 rounded-2xl p-4 border border-white/10 space-y-2">
                 <div className="flex justify-between text-[11px] font-bold text-slate-300">
                   <span>Matriz de Risco Setorial</span>
-                  <span className="text-cyan-400 font-mono">IA M2.7</span>
+                  <span className="text-cyan-400 font-mono">Indicadores</span>
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-[10px] text-slate-400">
                     <span>Operações & Logística</span>
-                    <span className="text-rose-400 font-bold">Risco Moderado (62)</span>
+                    <span className="text-rose-400 font-bold">Risco Moderado — 62</span>
                   </div>
                   <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                     <div className="h-full bg-rose-500 w-[62%]" />
                   </div>
                   <div className="flex justify-between text-[10px] text-slate-400 pt-1">
                     <span>Tecnologia & Produto</span>
-                    <span className="text-[#1FC6A5] font-bold">Controlado (24)</span>
+                    <span className="text-[#1FC6A5] font-bold">Controlado — 24</span>
                   </div>
                   <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                     <div className="h-full bg-[#1FC6A5] w-[24%]" />
@@ -384,7 +417,7 @@ export default function MarketingPage() {
                   <p className="text-slate-400 text-xs mb-6 leading-relaxed">
                     {copy.step3Desc}
                   </p>
-                  <ul className="space-y-3 mb-6">
+                  <ul className="space-y-2.5 mb-6">
                     <li className="flex items-start gap-3 text-xs text-slate-300">
                       <Check className="w-4 h-4 text-[#1FC6A5] shrink-0 mt-0.5" />
                       <span>{copy.step3Item1}</span>
@@ -392,6 +425,14 @@ export default function MarketingPage() {
                     <li className="flex items-start gap-3 text-xs text-slate-300">
                       <Check className="w-4 h-4 text-[#1FC6A5] shrink-0 mt-0.5" />
                       <span>{copy.step3Item2}</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-xs text-slate-300">
+                      <Check className="w-4 h-4 text-[#1FC6A5] shrink-0 mt-0.5" />
+                      <span>{copy.step3Item3}</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-xs text-slate-300">
+                      <Check className="w-4 h-4 text-[#1FC6A5] shrink-0 mt-0.5" />
+                      <span>{copy.step3Item4}</span>
                     </li>
                   </ul>
                 </div>
@@ -401,14 +442,14 @@ export default function MarketingPage() {
               <div className="mt-auto bg-black/60 rounded-2xl p-4 border border-white/10 space-y-2">
                 <div className="flex justify-between text-[11px] font-bold text-slate-300">
                   <span>Action Center V2</span>
-                  <span className="text-[#1FC6A5] font-mono">Auditável</span>
+                  <span className="text-[#1FC6A5] font-mono">Auditoria</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-[10px] text-slate-300 space-y-1">
                   <div className="font-bold text-white flex items-center justify-between">
-                    <span>Ação #07: Reestruturação de Pausas</span>
+                    <span>Ação #07 — Reestruturação de Pausas</span>
                     <span className="text-[#1FC6A5]">Concluída</span>
                   </div>
-                  <div className="text-slate-400 text-[9px]">Evidência anexada • Resp: Dra. Sofia M.</div>
+                  <div className="text-slate-400 text-[9px]">Evidência anexada • Responsável: Dra. Sofia M.</div>
                 </div>
               </div>
             </article>
@@ -442,9 +483,7 @@ export default function MarketingPage() {
                   Avaliar — Sinais Organizacionais
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  {isPT 
-                    ? "Questionários psicossociais validados (COPSOQ-II) com tokens anônimos descartáveis."
-                    : "Escuta ativa e Worker Voice (NR-1.5.3.3) sem identificação do colaborador."}
+                  Questionários psicossociais estruturados, incluindo COPSOQ-II, com mecanismos seguros de participação e proteção de dados.
                 </p>
               </div>
 
@@ -454,7 +493,7 @@ export default function MarketingPage() {
                   <div className="h-full bg-[#1FC6A5] w-[75%]" />
                 </div>
                 <div className="flex justify-between text-[9px] text-slate-500">
-                  <span>Sigilo Garantido</span>
+                  <span>Protegido</span>
                   <span>75% Concluído</span>
                 </div>
               </div>
@@ -473,7 +512,7 @@ export default function MarketingPage() {
                   Prevenir — Gestão de Riscos
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Matriz dinâmica de severidade e mapas de calor para tomada de decisão antecipada.
+                  Matrizes de risco, indicadores agregados e mapas de prioridade para apoiar decisões preventivas.
                 </p>
               </div>
 
@@ -500,7 +539,7 @@ export default function MarketingPage() {
                   Apoiar — Unstuck AI & Foco
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Desbloqueio de tarefas complexas via Gemini 3 Flash e micro-janelas de foco de 5 min.
+                  Ferramentas de IA para apoiar o trabalhador na organização de tarefas, redução da sobrecarga operacional e recuperação do foco.
                 </p>
               </div>
 
@@ -509,7 +548,7 @@ export default function MarketingPage() {
                   <span>Unstuck Assistant</span>
                   <span className="text-[8px] bg-cyan-500/20 px-1.5 py-0.5 rounded">Ativo</span>
                 </div>
-                <p className="text-[9px] text-slate-400">"Vamos usar a regra dos 2 minutos e iniciar foco."</p>
+                <p className="text-[9px] text-slate-400">"Vamos usar a regra dos 2 minutos e iniciar o foco."</p>
               </div>
             </div>
 
@@ -526,9 +565,7 @@ export default function MarketingPage() {
                   Transformar — Inteligência de Dados
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  {isPT
-                    ? "Geração de evidências documentais auditáveis para a ACT e plano de melhoria contínua."
-                    : "Geração de relatórios para o PGR e conformidade documental com o MTE."}
+                  Transforme resultados agregados em indicadores, evidências documentais e planos de melhoria contínua.
                 </p>
               </div>
 
@@ -568,7 +605,7 @@ export default function MarketingPage() {
                   <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">(Entenda os riscos)</span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Monitoramento preventivo do clima, retenção de talentos e decisões baseadas em dados agregados.
+                  {copy.rhDesc}
                 </p>
               </div>
               <button 
@@ -590,9 +627,7 @@ export default function MarketingPage() {
                   <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">(Evidências & Ação)</span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  {isPT 
-                    ? "Relatórios técnicos de riscos psicossociais para a Lei 102/2009 e fiscalizações da ACT."
-                    : "Alimentação do PGR, gestão de ergonomia (NR-17) e acompanhamento de medidas preventivas."}
+                  {copy.sstDesc}
                 </p>
               </div>
               <button 
@@ -611,10 +646,10 @@ export default function MarketingPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-black text-white">JURÍDICO / DPO</h3>
-                  <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">(LGPD / RGPD / AI Act)</span>
+                  <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">(Privacidade & Governança)</span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Conformidade com travas matemáticas de anonimato (N ≥ 5), RLS e registros criptográficos auditáveis.
+                  {copy.dpoDesc}
                 </p>
               </div>
               <Link href="/ai-act" className="w-full">
@@ -635,7 +670,7 @@ export default function MarketingPage() {
                   <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">(Apoio Real)</span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Ferramentas de foco, desbloqueio de tarefas e micro-janelas de produtividade com sigilo total.
+                  {copy.colabDesc}
                 </p>
               </div>
               <Link href="/employee/cognitive" className="w-full">
@@ -656,7 +691,7 @@ export default function MarketingPage() {
                   <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">(Decisão & ROI)</span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Visão executiva e estratégica para alocação de investimentos e redução de passivos trabalhistas.
+                  {copy.dirDesc}
                 </p>
               </div>
               <button 
@@ -687,7 +722,7 @@ export default function MarketingPage() {
                 </h2>
 
                 <p className="text-slate-300 text-sm leading-relaxed">
-                  O AegisHub foi arquitetado do zero para garantir que nenhuma conversa individual ou gravação de voz seja acessível pelo empregador.
+                  O AegisHub foi concebido para separar apoio individual de inteligência organizacional.
                 </p>
 
                 {/* Visual Data Flow */}
@@ -695,21 +730,19 @@ export default function MarketingPage() {
                   <div className="space-y-1">
                     <User className="w-6 h-6 mx-auto text-cyan-400" />
                     <div className="text-[10px] text-slate-300 font-bold">Colaborador</div>
+                    <div className="text-[8px] text-slate-500">Dados privados e protegidos</div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-[#1FC6A5] shrink-0" />
                   <div className="space-y-1 p-2 bg-[#1FC6A5]/10 rounded-xl border border-[#1FC6A5]/20">
                     <Lock className="w-6 h-6 mx-auto text-[#1FC6A5]" />
-                    <div className="text-[9px] text-[#1FC6A5] font-bold">Protected Data</div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-[#1FC6A5] shrink-0" />
-                  <div className="space-y-1">
-                    <BarChart3 className="w-6 h-6 mx-auto text-cyan-400" />
-                    <div className="text-[10px] text-slate-300 font-bold">Aggregated (N ≥ 5)</div>
+                    <div className="text-[9px] text-[#1FC6A5] font-bold">Agregação (N ≥ 5)</div>
+                    <div className="text-[8px] text-emerald-300">Indicadores organizacionais</div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-[#1FC6A5] shrink-0" />
                   <div className="space-y-1">
                     <Users className="w-6 h-6 mx-auto text-[#1FC6A5]" />
-                    <div className="text-[10px] text-slate-300 font-bold">RH / SST</div>
+                    <div className="text-[10px] text-slate-300 font-bold">RH / SST / Direção</div>
+                    <div className="text-[8px] text-slate-500">Sem exposição individual</div>
                   </div>
                 </div>
               </div>
@@ -724,23 +757,23 @@ export default function MarketingPage() {
                 <ul className="space-y-3.5 text-xs text-slate-300">
                   <li className="flex items-center gap-3">
                     <Shield className="w-4 h-4 text-[#1FC6A5] shrink-0" />
-                    <span>Privacy by Design & Defesa Anti-IDOR</span>
+                    <span>Privacy by Design & Defesa anti-IDOR</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Database className="w-4 h-4 text-[#1FC6A5] shrink-0" />
-                    <span>Row Level Security (RLS) & Storage Privado</span>
+                    <span>Row Level Security (RLS) & Storage privado</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <FileCheck className="w-4 h-4 text-[#1FC6A5] shrink-0" />
-                    <span>Audit Trail com HMAC Criptográfico</span>
+                    <span>Audit Trail com HMAC criptográfico</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Lock className="w-4 h-4 text-[#1FC6A5] shrink-0" />
-                    <span>Limiar Estatístico Obrigatório (N ≥ 5)</span>
+                    <span>Limiar de agregação configurável (N ≥ 5)</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <EyeOff className="w-4 h-4 text-[#1FC6A5] shrink-0" />
-                    <span>No Individual Surveillance (EU AI Act Art. 5º)</span>
+                    <span>Sem reconhecimento de emoções no trabalho (EU AI Act)</span>
                   </li>
                 </ul>
               </div>
@@ -772,15 +805,15 @@ export default function MarketingPage() {
                 <div className="space-y-3 pt-2">
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-[#1FC6A5] shrink-0 mt-0.5" />
-                    <span className="text-sm text-slate-300">Empodere seus técnicos e médicos do trabalho com coletas digitais e relatórios instantâneos.</span>
+                    <span className="text-sm text-slate-300">Coletas digitais estruturadas e avaliações com instrumentos validados.</span>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-[#1FC6A5] shrink-0 mt-0.5" />
-                    <span className="text-sm text-slate-300">Monetize novos contratos de gestão contínua de risco psicossocial para sua carteira de clientes.</span>
+                    <span className="text-sm text-slate-300">Dashboards com indicadores agregados e matrizes dinâmicas de risco.</span>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-[#1FC6A5] shrink-0 mt-0.5" />
-                    <span className="text-sm text-slate-300">Conformidade e geração de evidências para auditorias {isPT ? "da ACT e RGPD" : "do MTE e LGPD"}.</span>
+                    <span className="text-sm text-slate-300">Planos de ação preventivos com registo contínuo de evidências para auditorias.</span>
                   </div>
                 </div>
 
@@ -799,14 +832,14 @@ export default function MarketingPage() {
                 <h4 className="text-sm font-bold text-white uppercase tracking-widest border-b border-white/10 pb-4">
                   Público-Alvo Comercial
                 </h4>
-                <ul className="space-y-4 text-xs font-medium text-slate-300">
+                <ul className="space-y-3.5 text-xs font-medium text-slate-300">
                   <li className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-[#1FC6A5]" />
-                    <span>Empresas Prestadoras de Serviços de SST</span>
+                    <span>Empresas prestadoras de serviços de SST</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-[#1FC6A5]" />
-                    <span>Clínicas de Medicina e Segurança Ocupacional</span>
+                    <span>Clínicas de Medicina do Trabalho e Saúde Ocupacional</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-[#1FC6A5]" />
@@ -814,12 +847,12 @@ export default function MarketingPage() {
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-[#1FC6A5]" />
-                    <span>Grandes Organizações com SESMT / Serviços Internos</span>
+                    <span>Grandes organizações com serviços internos de SST / SESMT</span>
                   </li>
                 </ul>
 
                 <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 text-[11px] text-slate-400 leading-relaxed">
-                  O software atua como ferramenta de suporte e documentação de evidências, respeitando integralmente a autonomia dos especialistas credenciados.
+                  O AegisHub é uma ferramenta de suporte tecnológico e apoio à decisão. Não substitui a responsabilidade ou o julgamento profissional dos especialistas de SST.
                 </div>
               </div>
 
@@ -830,7 +863,7 @@ export default function MarketingPage() {
         {/* 🔒 7. DISCLAIMER REGULATÓRIO */}
         <section className="py-12 px-6 max-w-5xl mx-auto text-center border-t border-white/5">
           <p className="text-xs text-slate-500 leading-relaxed max-w-3xl mx-auto font-medium">
-            <strong>Aviso Legal de Conformidade:</strong> O AegisHub AI é uma plataforma de inteligência de dados ocupacionais e apoio à decisão de gestão de SST. A plataforma não realiza diagnóstico clínico médico/psicológico individual e não substitui a atuação de médicos do trabalho, psicólogos, engenheiros ou técnicos credenciados de Segurança e Saúde no Trabalho.
+            <strong>Aviso Legal:</strong> O AegisHub AI é uma plataforma de inteligência de dados ocupacionais, prevenção e apoio à decisão no contexto de Segurança e Saúde no Trabalho. Não realiza diagnóstico clínico individual nem substitui a atuação de médicos do trabalho, psicólogos, engenheiros, técnicos ou outros profissionais legalmente habilitados.
           </p>
         </section>
 
